@@ -1,0 +1,26 @@
+package com.scooter.app.modules.iam;
+
+import com.scooter.app.modules.iam.dto.AuthResponse;
+import com.scooter.app.modules.iam.dto.LoginRequest;
+import com.scooter.app.modules.iam.dto.RegisterRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final UserService userService;
+
+    @PostMapping("/register")
+    public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
+        return userService.register(request);
+    }
+
+    @PostMapping("/login")
+    public AuthResponse login(@Valid @RequestBody LoginRequest request) {
+        return userService.login(request);
+    }
+}
