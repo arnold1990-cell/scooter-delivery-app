@@ -12,3 +12,6 @@ dist/
 
 # Environment
 .env
+# Environment files
+.env
+.env.*
