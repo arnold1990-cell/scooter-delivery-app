@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: scooterdb
+      POSTGRES_USER: scooter
+      POSTGRES_PASSWORD: scooter
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scooter -d scooterdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/scooterdb
+      DB_USERNAME: scooter
+      DB_PASSWORD: scooter
+      JWT_SECRET: MyVeryLongSecretKeyThatIsAtLeast256BitsForHS256Algorithm
+      JWT_EXPIRATION_MINUTES: 1440
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
