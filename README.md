@@ -29,6 +29,9 @@ docker run -d --name scooter-pg \
 ### Backend
 ```bash
 cd backend
+SCOOTER_DB_URL=jdbc:postgresql://localhost:5432/scooterdb \
+SCOOTER_DB_USERNAME=scooter \
+SCOOTER_DB_PASSWORD=scooter \
 mvn spring-boot:run
 ```
 

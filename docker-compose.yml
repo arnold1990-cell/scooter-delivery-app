@@ -22,9 +22,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DB_URL: jdbc:postgresql://postgres:5432/scooterdb
-      DB_USERNAME: scooter
-      DB_PASSWORD: scooter
+      SCOOTER_DB_URL: jdbc:postgresql://postgres:5432/scooterdb
+      SCOOTER_DB_USERNAME: scooter
+      SCOOTER_DB_PASSWORD: scooter
       JWT_SECRET: MyVeryLongSecretKeyThatIsAtLeast256BitsForHS256Algorithm
       JWT_EXPIRATION_MINUTES: 1440
     depends_on:

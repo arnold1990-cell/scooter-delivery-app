@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/scooterdb}
-    username: ${DB_USERNAME:scooter}
-    password: ${DB_PASSWORD:scooter}
+    url: ${SCOOTER_DB_URL:${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/scooterdb}}
+    username: ${SCOOTER_DB_USERNAME:${SPRING_DATASOURCE_USERNAME:scooter}}
+    password: ${SCOOTER_DB_PASSWORD:${SPRING_DATASOURCE_PASSWORD:scooter}}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
