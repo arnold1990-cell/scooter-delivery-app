@@ -8,14 +8,12 @@ export interface AuthUser {
 }
 
 export type DeliveryStatus =
-  | 'REQUESTED'
+  | 'CREATED'
   | 'ASSIGNED'
   | 'ACCEPTED'
-  | 'PICKED_UP'
-  | 'IN_TRANSIT'
+  | 'IN_PROGRESS'
   | 'DELIVERED'
-  | 'CANCELLED'
-  | 'REJECTED';
+  | 'CANCELLED';
 
 export interface Delivery {
   id: string;
