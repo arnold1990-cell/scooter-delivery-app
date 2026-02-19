@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: ${SCOOTER_DB_URL:${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/scooterdb}}
-    username: ${SCOOTER_DB_USERNAME:${SPRING_DATASOURCE_USERNAME:scooter}}
-    password: ${SCOOTER_DB_PASSWORD:${SPRING_DATASOURCE_PASSWORD:scooter}}
+    url: jdbc:postgresql://localhost:5432/scooterdb
+    username: postgres
+    password: Crt@Ailsa
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -19,7 +19,7 @@ spring:
 
 app:
   flyway:
-    auto-repair-on-validation-error: ${APP_FLYWAY_AUTO_REPAIR_ON_VALIDATION_ERROR:false}
+    auto-repair-on-validation-error: false
   jwt:
     secret: ${JWT_SECRET:MyVeryLongSecretKeyThatIsAtLeast256BitsLong!!ForHS256}
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:1440}
