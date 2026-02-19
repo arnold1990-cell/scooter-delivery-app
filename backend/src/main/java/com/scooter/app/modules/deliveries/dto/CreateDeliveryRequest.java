@@ -17,4 +17,5 @@ public class CreateDeliveryRequest {
     @DecimalMin(value = "0.0")
     private BigDecimal price;
     private String notes;
+    private String status;
 }

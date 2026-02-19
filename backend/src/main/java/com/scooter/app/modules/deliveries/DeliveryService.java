@@ -35,12 +35,19 @@ public class DeliveryService {
                 .pickupAddress(request.getPickupAddress())
                 .dropoffAddress(request.getDropoffAddress())
                 .price(request.getPrice())
-                .status(DeliveryStatus.REQUESTED)
+                .status(resolveCreateStatus(request.getStatus()))
                 .notes(request.getNotes())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
         return toResponse(deliveryRepository.save(delivery));
+    }
+
+    private DeliveryStatus resolveCreateStatus(String requestedStatus) {
+        if (requestedStatus == null || requestedStatus.isBlank()) {
+            return DeliveryStatus.REQUESTED;
+        }
+        return DeliveryStatus.from(requestedStatus);
     }
 
     public List<DeliveryResponse> customerDeliveries(String customerEmail) {
