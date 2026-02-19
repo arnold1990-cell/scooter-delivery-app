@@ -3,8 +3,8 @@ package com.scooter.app.modules.riders;
 import com.scooter.app.modules.iam.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -31,12 +31,17 @@ public class RiderProfile {
     private String licenseNumber;
 
     @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name = "approval_status", columnDefinition = "approval_status", nullable = false)
     private ApprovalStatus approvalStatus;
 
     @Column(name = "is_online", nullable = false)
     private Boolean isOnline;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "status", columnDefinition = "rider_status", nullable = false)
+    private RiderStatus status;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

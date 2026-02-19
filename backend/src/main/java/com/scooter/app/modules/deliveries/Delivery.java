@@ -32,8 +32,29 @@ public class Delivery {
     @Column(name = "dropoff_address", nullable = false)
     private String dropoffAddress;
 
+    @Column(name = "pickup_latitude")
+    private BigDecimal pickupLatitude;
+
+    @Column(name = "pickup_longitude")
+    private BigDecimal pickupLongitude;
+
+    @Column(name = "dropoff_latitude")
+    private BigDecimal dropoffLatitude;
+
+    @Column(name = "dropoff_longitude")
+    private BigDecimal dropoffLongitude;
+
     @Column(nullable = false)
     private BigDecimal price;
+
+    @Column(name = "distance_km")
+    private BigDecimal distanceKm;
+
+    @Column(name = "estimated_pickup_time")
+    private LocalDateTime estimatedPickupTime;
+
+    @Column(name = "estimated_delivery_time")
+    private LocalDateTime estimatedDeliveryTime;
 
     @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
