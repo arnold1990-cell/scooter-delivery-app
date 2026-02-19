@@ -1,9 +1,7 @@
 package com.scooter.app.modules.iam.dto;
 
-import com.scooter.app.modules.iam.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -20,6 +18,6 @@ public class RegisterRequest {
     @NotBlank
     private String fullName;
 
-    @NotNull
-    private UserRole role;
+    @NotBlank
+    private String role;
 }

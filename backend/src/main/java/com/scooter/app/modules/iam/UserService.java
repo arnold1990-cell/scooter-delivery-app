@@ -32,7 +32,8 @@ public class UserService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (request.getRole() == UserRole.ADMIN) {
+        UserRole role = UserRole.from(request.getRole());
+        if (role == UserRole.ADMIN) {
             throw new IllegalArgumentException("ADMIN cannot self-register");
         }
         userRepository.findByEmail(request.getEmail()).ifPresent(u -> {
@@ -44,12 +45,12 @@ public class UserService {
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName())
-                .role(request.getRole())
+                .role(role)
                 .createdAt(LocalDateTime.now())
                 .build();
         userRepository.save(user);
 
-        if (request.getRole() == UserRole.RIDER) {
+        if (role == UserRole.RIDER) {
             riderRepository.save(RiderProfile.builder()
                     .id(UUID.randomUUID())
                     .userId(user.getId())
