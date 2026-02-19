@@ -41,3 +41,7 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## Flyway migration safety
+- Never edit a Flyway migration that has already been applied in any environment.
+- Always add a new versioned migration file (for example `V5__...sql`) for follow-up schema/data changes.
