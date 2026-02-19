@@ -9,8 +9,7 @@ export default function RiderLayout() {
         <div className="font-bold">Scooter Delivery</div>
         <div className="space-x-4">
           <Link to="/rider/dashboard">Dashboard</Link>
-          <Link to="/rider/jobs">Available Jobs</Link>
-          <Link to="/rider/active">Active Delivery</Link>
+          <Link to="/rider/deliveries">Assigned Deliveries</Link>
           <button onClick={logout} className="bg-red-600 px-3 py-1 rounded">Logout</button>
         </div>
       </nav>

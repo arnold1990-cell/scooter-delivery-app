@@ -11,7 +11,7 @@ export default function CustomerDashboard() {
     deliveriesApi.my().then((items) => {
       setStats({
         total: items.length,
-        pending: items.filter((d) => !['DELIVERED', 'CANCELLED', 'REJECTED'].includes(d.status)).length,
+        pending: items.filter((d) => !['DELIVERED', 'CANCELLED'].includes(d.status)).length,
         delivered: items.filter((d) => d.status === 'DELIVERED').length
       });
     }).catch(() => undefined);

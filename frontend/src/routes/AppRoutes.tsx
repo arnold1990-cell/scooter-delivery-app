@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
 import ProtectedRoute from './ProtectedRoute';
-import RoleRoute from './RoleRoute';
 import AuthLayout from '../layouts/AuthLayout';
 import CustomerLayout from '../layouts/CustomerLayout';
 import RiderLayout from '../layouts/RiderLayout';
@@ -12,11 +11,12 @@ import CustomerDashboard from '../pages/customer/CustomerDashboard';
 import CreateDeliveryPage from '../pages/customer/CreateDeliveryPage';
 import MyDeliveriesPage from '../pages/customer/MyDeliveriesPage';
 import RiderDashboard from '../pages/rider/RiderDashboard';
-import AvailableJobsPage from '../pages/rider/AvailableJobsPage';
-import ActiveDeliveryPage from '../pages/rider/ActiveDeliveryPage';
+import RiderDeliveriesPage from '../pages/rider/RiderDeliveriesPage';
 import AdminDashboard from '../pages/admin/AdminDashboard';
-import AdminRidersPage from '../pages/admin/AdminRidersPage';
 import AdminDeliveriesPage from '../pages/admin/AdminDeliveriesPage';
+import CustomerRoute from './CustomerRoute';
+import RiderRoute from './RiderRoute';
+import AdminRoute from './AdminRoute';
 
 export default function AppRoutes() {
   const { user } = useAuth();
@@ -29,7 +29,7 @@ export default function AppRoutes() {
       </Route>
 
       <Route element={<ProtectedRoute />}>
-        <Route element={<RoleRoute allowedRoles={['CUSTOMER']} />}>
+        <Route element={<CustomerRoute />}>
           <Route path="/customer" element={<CustomerLayout />}>
             <Route path="dashboard" element={<CustomerDashboard />} />
             <Route path="create" element={<CreateDeliveryPage />} />
@@ -37,18 +37,16 @@ export default function AppRoutes() {
           </Route>
         </Route>
 
-        <Route element={<RoleRoute allowedRoles={['RIDER']} />}>
+        <Route element={<RiderRoute />}>
           <Route path="/rider" element={<RiderLayout />}>
             <Route path="dashboard" element={<RiderDashboard />} />
-            <Route path="jobs" element={<AvailableJobsPage />} />
-            <Route path="active" element={<ActiveDeliveryPage />} />
+            <Route path="deliveries" element={<RiderDeliveriesPage />} />
           </Route>
         </Route>
 
-        <Route element={<RoleRoute allowedRoles={['ADMIN']} />}>
+        <Route element={<AdminRoute />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="riders" element={<AdminRidersPage />} />
             <Route path="deliveries" element={<AdminDeliveriesPage />} />
           </Route>
         </Route>
