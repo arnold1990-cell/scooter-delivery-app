@@ -59,7 +59,7 @@ class DeliveryRepositoryIntegrationTest {
                 .pickupAddress("A street")
                 .dropoffAddress("B avenue")
                 .price(new BigDecimal("14.50"))
-                .status(DeliveryStatus.REQUESTED)
+                .status(DeliveryStatus.PENDING)
                 .notes("Fragile")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -68,6 +68,6 @@ class DeliveryRepositoryIntegrationTest {
         Delivery savedDelivery = deliveryRepository.saveAndFlush(delivery);
 
         assertThat(savedDelivery.getId()).isEqualTo(delivery.getId());
-        assertThat(savedDelivery.getStatus()).isEqualTo(DeliveryStatus.REQUESTED);
+        assertThat(savedDelivery.getStatus()).isEqualTo(DeliveryStatus.PENDING);
     }
 }

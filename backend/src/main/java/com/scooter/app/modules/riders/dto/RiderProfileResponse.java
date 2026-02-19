@@ -1,6 +1,7 @@
 package com.scooter.app.modules.riders.dto;
 
 import com.scooter.app.modules.riders.ApprovalStatus;
+import com.scooter.app.modules.riders.RiderStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,4 +17,5 @@ public class RiderProfileResponse {
     private String licenseNumber;
     private ApprovalStatus approvalStatus;
     private Boolean isOnline;
+    private RiderStatus status;
 }

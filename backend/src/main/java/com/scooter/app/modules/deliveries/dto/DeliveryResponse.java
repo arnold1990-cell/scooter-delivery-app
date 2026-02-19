@@ -16,7 +16,14 @@ public class DeliveryResponse {
     private UUID riderId;
     private String pickupAddress;
     private String dropoffAddress;
+    private BigDecimal pickupLatitude;
+    private BigDecimal pickupLongitude;
+    private BigDecimal dropoffLatitude;
+    private BigDecimal dropoffLongitude;
     private BigDecimal price;
+    private BigDecimal distanceKm;
+    private LocalDateTime estimatedPickupTime;
+    private LocalDateTime estimatedDeliveryTime;
     private DeliveryStatus status;
     private String notes;
     private LocalDateTime createdAt;

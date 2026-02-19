@@ -6,6 +6,7 @@ import com.scooter.app.modules.iam.dto.RegisterRequest;
 import com.scooter.app.modules.riders.ApprovalStatus;
 import com.scooter.app.modules.riders.RiderProfile;
 import com.scooter.app.modules.riders.RiderRepository;
+import com.scooter.app.modules.riders.RiderStatus;
 import com.scooter.app.shared.exception.EntityNotFoundException;
 import com.scooter.app.shared.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,7 @@ public class UserService {
                     .userId(user.getId())
                     .approvalStatus(ApprovalStatus.PENDING)
                     .isOnline(false)
+                    .status(RiderStatus.OFFLINE)
                     .createdAt(LocalDateTime.now())
                     .build());
         }

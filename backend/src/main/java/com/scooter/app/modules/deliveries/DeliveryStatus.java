@@ -5,14 +5,13 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 public enum DeliveryStatus {
-    REQUESTED,
+    PENDING,
     ASSIGNED,
-    ACCEPTED,
     PICKED_UP,
     IN_TRANSIT,
     DELIVERED,
     CANCELLED,
-    REJECTED;
+    FAILED;
 
     public static DeliveryStatus from(String rawStatus) {
         if (rawStatus == null || rawStatus.isBlank()) {
@@ -20,11 +19,18 @@ public enum DeliveryStatus {
         }
 
         String normalized = rawStatus.trim().toUpperCase(Locale.ROOT);
-        try {
-            return DeliveryStatus.valueOf(normalized);
-        } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Invalid status '" + rawStatus + "'. Allowed values: " + allowedValues());
-        }
+        return switch (normalized) {
+            case "REQUESTED" -> PENDING;
+            case "REJECTED" -> FAILED;
+            case "ACCEPTED" -> ASSIGNED;
+            default -> {
+                try {
+                    yield DeliveryStatus.valueOf(normalized);
+                } catch (IllegalArgumentException ex) {
+                    throw new IllegalArgumentException("Invalid status '" + rawStatus + "'. Allowed values: " + allowedValues());
+                }
+            }
+        };
     }
 
     public static String allowedValues() {
