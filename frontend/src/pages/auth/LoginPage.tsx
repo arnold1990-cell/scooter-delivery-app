@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { isAxiosError } from 'axios';
+import { isHttpError } from '../../api/http';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/AuthContext';
 import type { UserRole } from '../../types';
@@ -34,17 +34,18 @@ export default function LoginPage() {
       }
       navigate(roleHome[portalRole]);
     } catch (err: unknown) {
-      if (!isAxiosError(err) || !err.response) {
+      if (!isHttpError(err)) {
         setError('Cannot reach backend server. Check API URL or CORS.');
         return;
       }
 
-      if (err.response.status === 401) {
+      if (err.status === 401) {
         setError('Invalid email/phone or password.');
-      } else if (err.response.status === 403) {
+      } else if (err.status === 403) {
         setError('You are not allowed to access this portal. Admin role required.');
       } else {
-        setError(err.response.data?.message || 'Login failed');
+        const message = (err.data as { message?: string } | null)?.message;
+        setError(message || 'Login failed');
       }
     }
   };

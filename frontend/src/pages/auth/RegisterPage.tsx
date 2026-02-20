@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { isAxiosError } from 'axios';
+import { isHttpError } from '../../api/http';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../store/AuthContext';
 
@@ -16,12 +16,13 @@ export default function RegisterPage() {
       const path = user.roles.includes('CUSTOMER') ? '/customer/dashboard' : '/rider/dashboard';
       navigate(path);
     } catch (err: unknown) {
-      if (!isAxiosError(err) || !err.response) {
+      if (!isHttpError(err)) {
         setError('Cannot reach backend server. Check API URL or CORS.');
         return;
       }
 
-      setError(err.response.data?.message || 'Registration failed');
+      const message = (err.data as { message?: string } | null)?.message;
+      setError(message || 'Registration failed');
     }
   };
 
