@@ -12,8 +12,11 @@ import CreateDeliveryPage from '../pages/customer/CreateDeliveryPage';
 import MyDeliveriesPage from '../pages/customer/MyDeliveriesPage';
 import RiderDashboard from '../pages/rider/RiderDashboard';
 import RiderDeliveriesPage from '../pages/rider/RiderDeliveriesPage';
+import AvailableJobsPage from '../pages/rider/AvailableJobsPage';
+import ActiveDeliveryPage from '../pages/rider/ActiveDeliveryPage';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminDeliveriesPage from '../pages/admin/AdminDeliveriesPage';
+import AdminRidersPage from '../pages/admin/AdminRidersPage';
 import CustomerRoute from './CustomerRoute';
 import RiderRoute from './RiderRoute';
 import AdminRoute from './AdminRoute';
@@ -41,6 +44,8 @@ export default function AppRoutes() {
           <Route path="/rider" element={<RiderLayout />}>
             <Route path="dashboard" element={<RiderDashboard />} />
             <Route path="deliveries" element={<RiderDeliveriesPage />} />
+            <Route path="available-jobs" element={<AvailableJobsPage />} />
+            <Route path="active-delivery" element={<ActiveDeliveryPage />} />
           </Route>
         </Route>
 
@@ -48,6 +53,7 @@ export default function AppRoutes() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="deliveries" element={<AdminDeliveriesPage />} />
+            <Route path="riders" element={<AdminRidersPage />} />
           </Route>
         </Route>
       </Route>

@@ -6,8 +6,13 @@ import type { RiderProfile } from '../../types';
 export default function RiderDashboard() {
   const [profile, setProfile] = useState<RiderProfile | null>(null);
   const [stats, setStats] = useState({ assigned: 0, inProgress: 0, delivered: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
+
     Promise.all([ridersApi.me(), deliveryService.getAssignedDeliveries()])
       .then(([riderProfile, deliveries]) => {
         setProfile(riderProfile);
@@ -17,10 +22,17 @@ export default function RiderDashboard() {
           delivered: deliveries.filter((d: any) => d.status === 'DELIVERED').length
         });
       })
-      .catch(() => undefined);
+      .catch(() => {
+        setError('Failed to load rider profile. Please refresh and try again.');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
-  if (!profile) return <p>Loading...</p>;
+  if (loading) return <p>Loading rider dashboard...</p>;
+  if (error) return <p className="text-red-600">{error}</p>;
+  if (!profile) return <p>No rider profile found.</p>;
 
   return (
     <div className="space-y-4">
