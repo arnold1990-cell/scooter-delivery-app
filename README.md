@@ -49,3 +49,11 @@ npm run dev
 ## Flyway migration safety
 - Never edit a Flyway migration that has already been applied in any environment.
 - Always add a new versioned migration file (for example `V5__...sql`) for follow-up schema/data changes.
+
+## Troubleshooting: "binary files not supported"
+If your Git provider shows **"binary files not supported"** for files that should be plain text, add or update `.gitattributes` so those extensions are explicitly marked as text. This repository now includes a baseline `.gitattributes` to make diffs work for Java, TypeScript, SQL, YAML, JSON, and other source/config files.
+
+After adding `.gitattributes`, re-stage the affected files so Git recalculates attributes:
+```bash
+git add --renormalize .
+```
