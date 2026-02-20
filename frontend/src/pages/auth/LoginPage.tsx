@@ -35,7 +35,7 @@ export default function LoginPage() {
       navigate(roleHome[portalRole]);
     } catch (err: unknown) {
       if (!isAxiosError(err) || !err.response) {
-        setError('Cannot reach API. Check backend URL / CORS.');
+        setError('Cannot reach backend server. Check API URL or CORS.');
         return;
       }
 

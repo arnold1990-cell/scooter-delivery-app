@@ -40,15 +40,15 @@ const toAuthUser = (data: AuthApiResponse): AuthUser => ({
 
 const authApi = {
   async login(payload: LoginPayload): Promise<AuthUser> {
-    const { data } = await http.post<AuthApiResponse>('/api/auth/login', payload);
+    const { data } = await http.post<AuthApiResponse>('/auth/login', payload);
     return toAuthUser(data);
   },
   async register(payload: RegisterPayload): Promise<AuthUser> {
-    const { data } = await http.post<AuthApiResponse>('/api/auth/register', payload);
+    const { data } = await http.post<AuthApiResponse>('/auth/register', payload);
     return toAuthUser(data);
   },
   async me(): Promise<MeResponse> {
-    const { data } = await http.get<MeResponse>('/api/auth/me');
+    const { data } = await http.get<MeResponse>('/auth/me');
     return data;
   }
 };
