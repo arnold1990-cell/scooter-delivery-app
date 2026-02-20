@@ -12,7 +12,7 @@ export default function RegisterPage() {
     e.preventDefault();
     try {
       const user = await register(form);
-      const path = user.role === 'CUSTOMER' ? '/customer/dashboard' : '/rider/dashboard';
+      const path = user.roles.includes('CUSTOMER') ? '/customer/dashboard' : '/rider/dashboard';
       navigate(path);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed');

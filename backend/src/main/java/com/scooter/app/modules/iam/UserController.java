@@ -1,12 +1,14 @@
 package com.scooter.app.modules.iam;
 
-import com.scooter.app.modules.iam.dto.AuthResponse;
+import com.scooter.app.modules.iam.dto.MeResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -17,12 +19,12 @@ public class UserController {
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public AuthResponse me(Authentication authentication) {
+    public MeResponse me(Authentication authentication) {
         User user = userService.me(authentication.getName());
-        return AuthResponse.builder()
+        return MeResponse.builder()
+                .userId(user.getId())
                 .email(user.getEmail())
-                .fullName(user.getFullName())
-                .role(user.getRole())
+                .roles(List.of(user.getRole().name()))
                 .build();
     }
 }

@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
 import ProtectedRoute from './ProtectedRoute';
+import RequireRole from './RequireRole';
 import AuthLayout from '../layouts/AuthLayout';
 import CustomerLayout from '../layouts/CustomerLayout';
 import RiderLayout from '../layouts/RiderLayout';
@@ -21,12 +22,14 @@ import AdminPricingZonesPage from '../pages/admin/AdminPricingZonesPage';
 import AdminDisputesPage from '../pages/admin/AdminDisputesPage';
 import AdminAnalyticsPage from '../pages/admin/AdminAnalyticsPage';
 import AdminSettingsPage from '../pages/admin/AdminSettingsPage';
-import CustomerRoute from './CustomerRoute';
-import RiderRoute from './RiderRoute';
-import AdminRoute from './AdminRoute';
 
 export default function AppRoutes() {
   const { user } = useAuth();
+  const homePath = user?.roles.includes('ADMIN')
+    ? '/admin/dashboard'
+    : user?.roles.includes('RIDER')
+      ? '/rider/dashboard'
+      : '/customer/dashboard';
 
   return (
     <Routes>
@@ -36,47 +39,53 @@ export default function AppRoutes() {
       </Route>
 
       <Route element={<ProtectedRoute />}>
-        <Route element={<CustomerRoute />}>
-          <Route path="/customer" element={<CustomerLayout />}>
-            <Route path="dashboard" element={<CustomerDashboard />} />
-            <Route path="create" element={<CreateDeliveryPage />} />
-            <Route path="my-deliveries" element={<MyDeliveriesPage />} />
-          </Route>
+        <Route
+          path="/customer"
+          element={
+            <RequireRole allowed={['CUSTOMER']}>
+              <CustomerLayout />
+            </RequireRole>
+          }
+        >
+          <Route path="dashboard" element={<CustomerDashboard />} />
+          <Route path="create" element={<CreateDeliveryPage />} />
+          <Route path="my-deliveries" element={<MyDeliveriesPage />} />
         </Route>
 
-        <Route element={<RiderRoute />}>
-          <Route path="/rider" element={<RiderLayout />}>
-            <Route path="dashboard" element={<RiderDashboard />} />
-            <Route path="deliveries" element={<RiderDeliveriesPage />} />
-            <Route path="available-jobs" element={<AvailableJobsPage />} />
-            <Route path="active-delivery" element={<ActiveDeliveryPage />} />
-          </Route>
+        <Route
+          path="/rider"
+          element={
+            <RequireRole allowed={['RIDER']}>
+              <RiderLayout />
+            </RequireRole>
+          }
+        >
+          <Route path="dashboard" element={<RiderDashboard />} />
+          <Route path="deliveries" element={<RiderDeliveriesPage />} />
+          <Route path="available-jobs" element={<AvailableJobsPage />} />
+          <Route path="active-delivery" element={<ActiveDeliveryPage />} />
         </Route>
 
-        <Route element={<AdminRoute />}>
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="orders" element={<AdminDeliveriesPage />} />
-            <Route path="riders" element={<AdminRidersPage />} />
-            <Route path="pricing-zones" element={<AdminPricingZonesPage />} />
-            <Route path="disputes" element={<AdminDisputesPage />} />
-            <Route path="analytics" element={<AdminAnalyticsPage />} />
-            <Route path="settings" element={<AdminSettingsPage />} />
-          </Route>
+        <Route
+          path="/admin"
+          element={
+            <RequireRole allowed={['ADMIN']}>
+              <AdminLayout />
+            </RequireRole>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="orders" element={<AdminDeliveriesPage />} />
+          <Route path="riders" element={<AdminRidersPage />} />
+          <Route path="pricing-zones" element={<AdminPricingZonesPage />} />
+          <Route path="disputes" element={<AdminDisputesPage />} />
+          <Route path="analytics" element={<AdminAnalyticsPage />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
       </Route>
 
-      <Route
-        path="/"
-        element={
-          user ? (
-            <Navigate to={user.role === 'CUSTOMER' ? '/customer/dashboard' : user.role === 'RIDER' ? '/rider/dashboard' : '/admin/dashboard'} replace />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
-      />
+      <Route path="/" element={<Navigate to={user ? homePath : '/login'} replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
