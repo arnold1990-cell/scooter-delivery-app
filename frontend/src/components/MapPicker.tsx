@@ -38,14 +38,7 @@ const getCurrentPosition = (options?: PositionOptions) =>
     navigator.geolocation.getCurrentPosition(resolve, reject, options);
   });
 
-const isInsecureContext = () => {
-  if (window.isSecureContext) {
-    return false;
-  }
-
-  const hostname = window.location.hostname;
-  return hostname !== 'localhost' && hostname !== '127.0.0.1' && hostname !== '[::1]';
-};
+const isInsecureContext = () => !window.isSecureContext && !import.meta.env.DEV;
 
 export default function MapPicker({
   title,
