@@ -1,0 +1,29 @@
+# Normalize line endings and force common source files to be treated as text
+* text=auto
+
+# Source / config files that should always diff as text
+*.java text
+*.ts text
+*.tsx text
+*.js text
+*.jsx text
+*.css text
+*.html text
+*.json text
+*.yml text
+*.yaml text
+*.sql text
+*.xml text
+*.md text
+*.sh text
+*.properties text
+*.env text
+
+# Common binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.jar binary
