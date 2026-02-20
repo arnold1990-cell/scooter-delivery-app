@@ -25,7 +25,7 @@ export default function AdminLayout() {
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-yellow-300 px-6 py-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-2xl font-black tracking-wide">ADMIN APP</p>
+            <p className="text-2xl font-black tracking-wide">ADMIN PORTAL</p>
             <p className="text-sm font-medium">Current route: {location.pathname}</p>
           </div>
           <div className="flex items-center gap-2">

@@ -10,7 +10,9 @@ import com.scooter.app.modules.riders.RiderStatus;
 import com.scooter.app.shared.exception.EntityNotFoundException;
 import com.scooter.app.shared.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,10 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
@@ -64,31 +68,38 @@ public class UserService {
 
         UserDetails details = userDetailsService.loadUserByUsername(user.getEmail());
         String token = jwtService.generateToken(details);
-        return AuthResponse.builder()
-                .token(token)
-                .email(user.getEmail())
-                .fullName(user.getFullName())
-                .role(user.getRole())
-                .build();
+        return toAuthResponse(user, token);
     }
 
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        } catch (BadCredentialsException ex) {
+            log.warn("Login failed for email={} due to bad credentials", request.getEmail());
+            throw ex;
+        }
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         UserDetails details = userDetailsService.loadUserByUsername(user.getEmail());
         String token = jwtService.generateToken(details);
-        return AuthResponse.builder()
-                .token(token)
-                .email(user.getEmail())
-                .fullName(user.getFullName())
-                .role(user.getRole())
-                .build();
+        return toAuthResponse(user, token);
     }
 
     public User me(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
+    }
+
+    private AuthResponse toAuthResponse(User user, String accessToken) {
+        String roleName = user.getRole().name();
+        return AuthResponse.builder()
+                .userId(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .roles(List.of(roleName))
+                .accessToken(accessToken)
+                .token(accessToken)
+                .build();
     }
 }

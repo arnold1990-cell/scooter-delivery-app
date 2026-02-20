@@ -1,14 +1,22 @@
 package com.scooter.app.modules.iam.dto;
 
-import com.scooter.app.modules.iam.UserRole;
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
 public class AuthResponse {
-    private String token;
+    private UUID userId;
     private String email;
     private String fullName;
-    private UserRole role;
+    private List<String> roles;
+    private String accessToken;
+    private String refreshToken;
+    /**
+     * Backward-compatible token field retained for existing frontend calls.
+     */
+    private String token;
 }

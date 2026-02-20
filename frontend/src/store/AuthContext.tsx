@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import authApi, { type LoginPayload, type RegisterPayload } from '../api/auth';
-import { getToken, getUser, removeToken, setToken, setUser } from '../utils/token';
-import type { AuthUser } from '../types';
+import { getToken, getUser, removeToken, setRefreshToken, setToken, setUser } from '../utils/token';
+import type { AuthUser, UserRole } from '../types';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (payload: LoginPayload) => Promise<AuthUser>;
   register: (payload: RegisterPayload) => Promise<AuthUser>;
   logout: () => void;
+  hasRole: (role: UserRole) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,21 +30,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
+  const upsertSession = (authUser: AuthUser) => {
+    setToken(authUser.accessToken);
+    setUser(authUser);
+    setRefreshToken(authUser.refreshToken);
+    setTokenState(authUser.accessToken);
+    setUserState(authUser);
+  };
+
   const login = async (payload: LoginPayload) => {
     const data = await authApi.login(payload);
-    setToken(data.token);
-    setUser(data);
-    setTokenState(data.token);
-    setUserState(data);
+    upsertSession(data);
     return data;
   };
 
   const register = async (payload: RegisterPayload) => {
     const data = await authApi.register(payload);
-    setToken(data.token);
-    setUser(data);
-    setTokenState(data.token);
-    setUserState(data);
+    upsertSession(data);
     return data;
   };
 
@@ -53,7 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserState(null);
   };
 
-  const value = useMemo(() => ({ user, token, loading, login, register, logout }), [user, token, loading]);
+  const hasRole = (role: UserRole) => Boolean(user?.roles.includes(role));
+
+  const value = useMemo(() => ({ user, token, loading, login, register, logout, hasRole }), [user, token, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -18,6 +18,8 @@ spring:
     locations: classpath:db/migration
 
 app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
   flyway:
     auto-repair-on-validation-error: false
   jwt:

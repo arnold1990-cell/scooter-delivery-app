@@ -1,10 +1,12 @@
 export type UserRole = 'CUSTOMER' | 'RIDER' | 'ADMIN';
 
 export interface AuthUser {
+  userId: string;
   email: string;
   fullName: string;
-  role: UserRole;
-  token: string;
+  roles: UserRole[];
+  accessToken: string;
+  refreshToken?: string;
 }
 
 export type DeliveryStatus =
