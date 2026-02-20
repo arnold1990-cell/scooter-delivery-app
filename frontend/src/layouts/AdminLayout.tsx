@@ -10,6 +10,7 @@ export default function AdminLayout() {
         <div className="space-x-4">
           <Link to="/admin/dashboard">Dashboard</Link>
           <Link to="/admin/deliveries">Manage Deliveries</Link>
+          <Link to="/admin/riders">Manage Riders</Link>
           <button onClick={logout} className="bg-red-600 px-3 py-1 rounded">Logout</button>
         </div>
       </nav>
