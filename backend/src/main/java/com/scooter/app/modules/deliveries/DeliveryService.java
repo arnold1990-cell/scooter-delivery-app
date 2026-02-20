@@ -106,12 +106,30 @@ public class DeliveryService {
                 .orElseThrow(() -> new EntityNotFoundException("Delivery not found"));
 
         validateTransition(delivery.getStatus(), request.getStatus());
+        assignRiderOnClaim(delivery, userId, changedByRole, request.getStatus());
+        validateRiderOwnership(delivery, userId, changedByRole);
         delivery.setStatus(request.getStatus());
         delivery.setUpdatedAt(LocalDateTime.now());
         Delivery saved = deliveryRepository.save(delivery);
         saveHistory(saved, request.getStatus(), userId, changedByRole, request.getNotes(), request.getLatitude(), request.getLongitude());
         createStatusNotifications(saved);
         return toResponse(saved);
+    }
+
+    private void assignRiderOnClaim(Delivery delivery, UUID userId, ChangedByRole changedByRole, DeliveryStatus toStatus) {
+        if (changedByRole == ChangedByRole.RIDER && toStatus == DeliveryStatus.ASSIGNED && delivery.getRiderId() == null) {
+            delivery.setRiderId(userId);
+        }
+    }
+
+    private void validateRiderOwnership(Delivery delivery, UUID userId, ChangedByRole changedByRole) {
+        if (changedByRole != ChangedByRole.RIDER || delivery.getRiderId() == null) {
+            return;
+        }
+
+        if (!delivery.getRiderId().equals(userId)) {
+            throw new IllegalArgumentException("Delivery is assigned to a different rider");
+        }
     }
 
     public List<DeliveryStatusHistoryResponse> history(UUID id) {
