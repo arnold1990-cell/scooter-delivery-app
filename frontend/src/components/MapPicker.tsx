@@ -18,7 +18,7 @@ const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 const getGeolocationErrorMessage = (error: GeolocationPositionError) => {
   switch (error.code) {
     case error.PERMISSION_DENIED:
-      return 'Location permission was denied. Enable it in browser settings and try again.';
+      return 'Location access is blocked. Please allow location permissions or access this app over HTTPS.';
     case error.TIMEOUT:
       return 'Timed out while fetching your location. Try again in an open area or with better signal.';
     case error.POSITION_UNAVAILABLE:
@@ -26,6 +26,25 @@ const getGeolocationErrorMessage = (error: GeolocationPositionError) => {
     default:
       return 'Unable to access your location. Check browser permissions and try again.';
   }
+};
+
+const getCurrentPosition = (options?: PositionOptions) =>
+  new Promise<GeolocationPosition>((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocation is not supported in this browser.'));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(resolve, reject, options);
+  });
+
+const isInsecureContext = () => {
+  if (window.isSecureContext) {
+    return false;
+  }
+
+  const hostname = window.location.hostname;
+  return hostname !== 'localhost' && hostname !== '127.0.0.1' && hostname !== '[::1]';
 };
 
 export default function MapPicker({
@@ -48,6 +67,7 @@ export default function MapPicker({
   }));
   const [addressStatus, setAddressStatus] = useState('Drag the pin to set location.');
   const [locationError, setLocationError] = useState('');
+  const [isLocating, setIsLocating] = useState(false);
 
   const addressLabel = useMemo(() => {
     const uppercase = title.toUpperCase();
@@ -179,30 +199,52 @@ export default function MapPicker({
     };
   }, []);
 
-  const useCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported in this browser.');
+  const useCurrentLocation = async () => {
+    setLocationError('');
+    setIsLocating(true);
+
+    if (isInsecureContext()) {
+      setLocationError('Location access is blocked. Please allow location permissions or access this app over HTTPS.');
+      setIsLocating(false);
       return;
     }
 
-    setLocationError('');
-
-    const onSuccess = ({ coords }: GeolocationPosition) => {
+    try {
+      const { coords } = await getCurrentPosition({ enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
       const lat = coords.latitude;
       const lng = coords.longitude;
-      setSelected((prev) => ({ ...prev, lat, lng }));
-      markerRef.current?.setLngLat([lng, lat]);
-      mapRef.current?.easeTo({ center: [lng, lat], zoom: 16 });
-      reverseGeocode(lat, lng);
-    };
 
-    navigator.geolocation.getCurrentPosition(
-      onSuccess,
-      (error) => {
-        setLocationError(getGeolocationErrorMessage(error));
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
-    );
+      setSelected((prev) => {
+        const updated = { ...prev, lat, lng };
+        onLocationChange?.(updated);
+        return updated;
+      });
+      markerRef.current?.setLngLat([lng, lat]);
+      mapRef.current?.flyTo({ center: [lng, lat], zoom: 16 });
+      await reverseGeocode(lat, lng);
+    } catch (error) {
+      if (typeof error === 'object' && error !== null && 'code' in error) {
+        const geolocationError = error as GeolocationPositionError;
+
+        if (geolocationError.code === geolocationError.PERMISSION_DENIED || isInsecureContext()) {
+          setLocationError(
+            'Location access is blocked. Please allow location permissions or access this app over HTTPS.'
+          );
+          return;
+        }
+
+        setLocationError(getGeolocationErrorMessage(geolocationError));
+        return;
+      }
+
+      setLocationError(
+        isInsecureContext()
+          ? 'Location access is blocked. Please allow location permissions or access this app over HTTPS.'
+          : 'Unable to access your location. Check browser permissions and try again.'
+      );
+    } finally {
+      setIsLocating(false);
+    }
   };
 
   if (!MAPBOX_TOKEN) {
@@ -250,9 +292,10 @@ export default function MapPicker({
             <button
               type="button"
               onClick={useCurrentLocation}
+              disabled={isLocating}
               className="rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
             >
-              Use my current location
+              {isLocating ? 'Fetching current location...' : 'Use my current location'}
             </button>
             <button
               type="button"
