@@ -5,6 +5,8 @@ import com.scooter.app.modules.riders.dto.RiderLocationResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +23,9 @@ public class DeliveryController {
 
     @PostMapping("/deliveries")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public DeliveryResponse create(Authentication authentication, @Valid @RequestBody CreateDeliveryRequest request) {
-        return deliveryService.create(authentication.getName(), request);
+    public ResponseEntity<DeliveryResponse> create(Authentication authentication, @Valid @RequestBody CreateDeliveryRequest request) {
+        DeliveryResponse response = deliveryService.create(authentication.getName(), request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/deliveries/my")
