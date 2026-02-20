@@ -1,4 +1,4 @@
-import http from './http';
+import { api } from './client';
 import type { AuthUser, UserRole } from '../types';
 
 export interface RegisterPayload {
@@ -40,15 +40,15 @@ const toAuthUser = (data: AuthApiResponse): AuthUser => ({
 
 const authApi = {
   async login(payload: LoginPayload): Promise<AuthUser> {
-    const { data } = await http.post<AuthApiResponse>('/auth/login', payload);
+    const { data } = await api.post<AuthApiResponse>('/auth/login', payload);
     return toAuthUser(data);
   },
   async register(payload: RegisterPayload): Promise<AuthUser> {
-    const { data } = await http.post<AuthApiResponse>('/auth/register', payload);
+    const { data } = await api.post<AuthApiResponse>('/auth/register', payload);
     return toAuthUser(data);
   },
   async me(): Promise<MeResponse> {
-    const { data } = await http.get<MeResponse>('/auth/me');
+    const { data } = await api.get<MeResponse>('/auth/me');
     return data;
   }
 };
