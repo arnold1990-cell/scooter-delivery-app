@@ -38,9 +38,13 @@ mvn spring-boot:run
 ### Frontend
 ```bash
 cd frontend
+cp .env.example .env
 npm install
 npm run dev
 ```
+
+- Default local API URL: `http://localhost:8080/api` (set via `VITE_API_BASE_URL`).
+- For VPS/local network access, update `frontend/.env` with your backend host, for example `VITE_API_BASE_URL=http://144.xx.xx.xx:8080/api`, then restart Vite.
 
 ## Flyway migration safety
 - Never edit a Flyway migration that has already been applied in any environment.
