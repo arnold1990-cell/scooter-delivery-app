@@ -1,0 +1,32 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost:8081/realms/scooter}
+  cloud:
+    gateway:
+      default-filters:
+        - PreserveHostHeader
+      routes:
+        - id: delivery
+          uri: ${DELIVERY_BASE_URL:http://localhost:8091}
+          predicates:
+            - Path=/api/deliveries/**
+        - id: dispatch
+          uri: ${DISPATCH_BASE_URL:http://localhost:8092}
+          predicates:
+            - Path=/api/dispatch/**
+        - id: tracking
+          uri: ${TRACKING_BASE_URL:http://localhost:8093}
+          predicates:
+            - Path=/api/tracking/**,/ws/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
