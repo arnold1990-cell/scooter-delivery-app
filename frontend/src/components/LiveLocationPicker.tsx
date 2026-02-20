@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
 
 export type PickedLocation = { lat: number; lng: number; address?: string };
 
@@ -11,8 +10,61 @@ type LiveLocationPickerProps = {
   onCancel: () => void;
 };
 
+type MapboxInstance = {
+  getCenter: () => { lat: number; lng: number };
+  on: (event: string, cb: () => void) => void;
+  off: (event: string, cb: () => void) => void;
+  easeTo: (options: { center: [number, number]; zoom?: number }) => void;
+  remove: () => void;
+};
+
+type MapboxGlobal = {
+  accessToken: string;
+  Map: new (options: {
+    container: HTMLDivElement;
+    style: string;
+    center: [number, number];
+    zoom: number;
+  }) => MapboxInstance;
+};
+
+const MAPBOX_SCRIPT_URL = 'https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js';
 const DEFAULT_CENTER = { lat: -24.6282, lng: 25.9231 };
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
+
+const loadMapboxScript = async (): Promise<MapboxGlobal | null> => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const existing = (window as typeof window & { mapboxgl?: MapboxGlobal }).mapboxgl;
+  if (existing) {
+    return existing;
+  }
+
+  const existingScript = document.querySelector<HTMLScriptElement>('script[data-mapbox-gl="true"]');
+  if (!existingScript) {
+    const script = document.createElement('script');
+    script.src = MAPBOX_SCRIPT_URL;
+    script.async = true;
+    script.dataset.mapboxGl = 'true';
+    document.head.appendChild(script);
+
+    await new Promise<void>((resolve, reject) => {
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Mapbox script'));
+    });
+  } else if (!(window as typeof window & { mapboxgl?: MapboxGlobal }).mapboxgl) {
+    await new Promise<void>((resolve, reject) => {
+      existingScript.addEventListener('load', () => resolve(), { once: true });
+      existingScript.addEventListener('error', () => reject(new Error('Failed to load Mapbox script')), {
+        once: true
+      });
+    });
+  }
+
+  return (window as typeof window & { mapboxgl?: MapboxGlobal }).mapboxgl ?? null;
+};
 
 export default function LiveLocationPicker({
   title,
@@ -22,7 +74,7 @@ export default function LiveLocationPicker({
   onCancel
 }: LiveLocationPickerProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<MapboxInstance | null>(null);
   const geocodeDebounceRef = useRef<number | undefined>(undefined);
 
   const [selected, setSelected] = useState<PickedLocation>(() => ({
@@ -77,41 +129,69 @@ export default function LiveLocationPicker({
       return;
     }
 
-    mapboxgl.accessToken = MAPBOX_TOKEN;
+    let isMounted = true;
 
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [selected.lng, selected.lat],
-      zoom: 15
-    });
+    const setupMap = async () => {
+      try {
+        const mapboxgl = await loadMapboxScript();
 
-    mapRef.current = map;
+        if (!mapboxgl || !isMounted || !mapContainerRef.current) {
+          return;
+        }
 
-    const handleMoveEnd = () => {
-      const center = map.getCenter();
-      setSelected((prev) => ({ ...prev, lat: center.lat, lng: center.lng }));
+        mapboxgl.accessToken = MAPBOX_TOKEN;
 
-      if (geocodeDebounceRef.current) {
-        window.clearTimeout(geocodeDebounceRef.current);
+        const map = new mapboxgl.Map({
+          container: mapContainerRef.current,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [selected.lng, selected.lat],
+          zoom: 15
+        });
+
+        mapRef.current = map;
+
+        const handleMoveEnd = () => {
+          const center = map.getCenter();
+          setSelected((prev) => ({ ...prev, lat: center.lat, lng: center.lng }));
+
+          if (geocodeDebounceRef.current) {
+            window.clearTimeout(geocodeDebounceRef.current);
+          }
+
+          geocodeDebounceRef.current = window.setTimeout(() => {
+            reverseGeocode(center.lat, center.lng);
+          }, 300);
+        };
+
+        map.on('load', () => {
+          reverseGeocode(selected.lat, selected.lng);
+        });
+        map.on('moveend', handleMoveEnd);
+
+        return () => {
+          map.off('moveend', handleMoveEnd);
+        };
+      } catch (error) {
+        console.error(error);
+        setAddressStatus('Unable to load map right now. Please try again.');
       }
-
-      geocodeDebounceRef.current = window.setTimeout(() => {
-        reverseGeocode(center.lat, center.lng);
-      }, 300);
     };
 
-    map.on('load', () => {
-      reverseGeocode(selected.lat, selected.lng);
+    let cleanupMapListeners: (() => void) | undefined;
+
+    setupMap().then((cleanup) => {
+      cleanupMapListeners = cleanup;
     });
-    map.on('moveend', handleMoveEnd);
 
     return () => {
+      isMounted = false;
+
       if (geocodeDebounceRef.current) {
         window.clearTimeout(geocodeDebounceRef.current);
       }
-      map.off('moveend', handleMoveEnd);
-      map.remove();
+
+      cleanupMapListeners?.();
+      mapRef.current?.remove();
       mapRef.current = null;
     };
   }, []);
