@@ -97,4 +97,31 @@ class DeliveryFeatureIntegrationTest {
         assertThat(assigned.getRiderId()).isEqualTo(rider.getId());
         assertThat(assigned.getStatus()).isEqualTo(DeliveryStatus.ASSIGNED);
     }
+
+    @Test
+    void riderCanClaimPendingJobAndSeeItInActiveDeliveries() {
+        User customer = userRepository.saveAndFlush(User.builder().id(UUID.randomUUID()).email("claim-customer@example.com")
+                .passwordHash("x").fullName("Claim Customer").role(UserRole.CUSTOMER).createdAt(LocalDateTime.now()).build());
+        User rider = userRepository.saveAndFlush(User.builder().id(UUID.randomUUID()).email("claim-rider@example.com")
+                .passwordHash("x").fullName("Claim Rider").role(UserRole.RIDER).createdAt(LocalDateTime.now()).build());
+
+        CreateDeliveryRequest request = new CreateDeliveryRequest();
+        request.setPickupAddress("A");
+        request.setDropoffAddress("B");
+        request.setPickupLatitude(new BigDecimal("12.9716"));
+        request.setPickupLongitude(new BigDecimal("77.5946"));
+        request.setDropoffLatitude(new BigDecimal("12.9352"));
+        request.setDropoffLongitude(new BigDecimal("77.6245"));
+
+        DeliveryResponse delivery = deliveryService.create(customer.getEmail(), request);
+
+        UpdateStatusRequest statusRequest = new UpdateStatusRequest();
+        statusRequest.setStatus(DeliveryStatus.ASSIGNED);
+        DeliveryResponse claimed = deliveryService.updateStatus(rider.getId(), ChangedByRole.RIDER, delivery.getId(), statusRequest);
+
+        assertThat(claimed.getRiderId()).isEqualTo(rider.getId());
+        assertThat(deliveryService.riderDeliveries(rider.getEmail()))
+                .extracting(DeliveryResponse::getId)
+                .contains(delivery.getId());
+    }
 }

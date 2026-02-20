@@ -9,7 +9,7 @@ export default function AvailableJobsPage() {
   useEffect(() => { load(); }, []);
 
   const accept = async (id: string) => {
-    await deliveriesApi.updateStatus(id, 'ACCEPTED');
+    await deliveriesApi.updateStatus(id, 'ASSIGNED');
     load();
   };
 
