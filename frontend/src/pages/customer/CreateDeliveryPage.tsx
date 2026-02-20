@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import deliveriesApi from '../../api/deliveries';
-import LiveLocationPicker, { type PickedLocation } from '../../components/LiveLocationPicker';
+import MapPicker, { type PickedLocation } from '../../components/MapPicker';
 
 type CreateDeliveryForm = {
   pickupAddress: string;
   dropoffAddress: string;
+  pickupLatitude: number | null;
+  pickupLongitude: number | null;
+  dropoffLatitude: number | null;
+  dropoffLongitude: number | null;
   price: string;
   notes: string;
 };
@@ -16,6 +20,10 @@ export default function CreateDeliveryPage() {
   const [form, setForm] = useState<CreateDeliveryForm>({
     pickupAddress: '',
     dropoffAddress: '',
+    pickupLatitude: null,
+    pickupLongitude: null,
+    dropoffLatitude: null,
+    dropoffLongitude: null,
     price: '',
     notes: ''
   });
@@ -28,18 +36,24 @@ export default function CreateDeliveryPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!pickupLocation || !dropoffLocation) {
+    if (
+      form.pickupLatitude === null ||
+      form.pickupLongitude === null ||
+      form.dropoffLatitude === null ||
+      form.dropoffLongitude === null
+    ) {
       setError('Please select both pickup and dropoff locations on the map before submitting.');
       return;
     }
 
     const payload = {
-      pickupAddress: form.pickupAddress || pickupLocation.address || `${pickupLocation.lat}, ${pickupLocation.lng}`,
-      dropoffAddress: form.dropoffAddress || dropoffLocation.address || `${dropoffLocation.lat}, ${dropoffLocation.lng}`,
-      pickupLatitude: pickupLocation.lat,
-      pickupLongitude: pickupLocation.lng,
-      dropoffLatitude: dropoffLocation.lat,
-      dropoffLongitude: dropoffLocation.lng,
+      pickupAddress: form.pickupAddress || pickupLocation?.address || `${form.pickupLatitude}, ${form.pickupLongitude}`,
+      dropoffAddress:
+        form.dropoffAddress || dropoffLocation?.address || `${form.dropoffLatitude}, ${form.dropoffLongitude}`,
+      pickupLatitude: form.pickupLatitude,
+      pickupLongitude: form.pickupLongitude,
+      dropoffLatitude: form.dropoffLatitude,
+      dropoffLongitude: form.dropoffLongitude,
       notes: form.notes || undefined,
       ...(form.price ? { price: Number(form.price) } : {})
     };
@@ -75,7 +89,10 @@ export default function CreateDeliveryPage() {
               <button
                 type="button"
                 className="rounded border border-slate-300 px-3 py-2 text-sm text-slate-700"
-                onClick={() => setPickupLocation(null)}
+                onClick={() => {
+                  setPickupLocation(null);
+                  setForm((prev) => ({ ...prev, pickupLatitude: null, pickupLongitude: null }));
+                }}
               >
                 Clear Pickup
               </button>
@@ -110,7 +127,10 @@ export default function CreateDeliveryPage() {
               <button
                 type="button"
                 className="rounded border border-slate-300 px-3 py-2 text-sm text-slate-700"
-                onClick={() => setDropoffLocation(null)}
+                onClick={() => {
+                  setDropoffLocation(null);
+                  setForm((prev) => ({ ...prev, dropoffLatitude: null, dropoffLongitude: null }));
+                }}
               >
                 Clear Dropoff
               </button>
@@ -152,12 +172,16 @@ export default function CreateDeliveryPage() {
       </form>
 
       {pickerMode === 'pickup' && (
-        <LiveLocationPicker
+        <MapPicker
           title="Pickup location"
           initialValue={pickupLocation}
           onCancel={() => setPickerMode(null)}
+          onLocationChange={(value) => {
+            setForm((prev) => ({ ...prev, pickupLatitude: value.lat, pickupLongitude: value.lng }));
+          }}
           onConfirm={(value) => {
             setPickupLocation(value);
+            setForm((prev) => ({ ...prev, pickupLatitude: value.lat, pickupLongitude: value.lng }));
             if (!form.pickupAddress && value.address) {
               setForm((prev) => ({ ...prev, pickupAddress: value.address ?? '' }));
             }
@@ -167,12 +191,16 @@ export default function CreateDeliveryPage() {
       )}
 
       {pickerMode === 'dropoff' && (
-        <LiveLocationPicker
+        <MapPicker
           title="Dropoff location"
           initialValue={dropoffLocation}
           onCancel={() => setPickerMode(null)}
+          onLocationChange={(value) => {
+            setForm((prev) => ({ ...prev, dropoffLatitude: value.lat, dropoffLongitude: value.lng }));
+          }}
           onConfirm={(value) => {
             setDropoffLocation(value);
+            setForm((prev) => ({ ...prev, dropoffLatitude: value.lat, dropoffLongitude: value.lng }));
             if (!form.dropoffAddress && value.address) {
               setForm((prev) => ({ ...prev, dropoffAddress: value.address ?? '' }));
             }
