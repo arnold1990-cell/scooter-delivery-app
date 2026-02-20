@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import ridersApi from '../../api/riders';
 import deliveryService from '../../api/deliveryService';
+import AdminPageTitle from './AdminPageTitle';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ total: 0, assigned: 0, inProgress: 0, delivered: 0, pendingRiders: 0 });
@@ -20,12 +21,14 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-      <div className="bg-white p-4 rounded shadow">Total: {stats.total}</div>
-      <div className="bg-white p-4 rounded shadow">Assigned: {stats.assigned}</div>
-      <div className="bg-white p-4 rounded shadow">In Progress: {stats.inProgress}</div>
-      <div className="bg-white p-4 rounded shadow">Delivered: {stats.delivered}</div>
-      <div className="bg-white p-4 rounded shadow">Pending Riders: {stats.pendingRiders}</div>
-    </div>
+    <AdminPageTitle title="Dashboard">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+        <div className="rounded border border-slate-200 bg-white p-4 shadow">Total Orders: {stats.total}</div>
+        <div className="rounded border border-slate-200 bg-white p-4 shadow">Assigned: {stats.assigned}</div>
+        <div className="rounded border border-slate-200 bg-white p-4 shadow">In Progress: {stats.inProgress}</div>
+        <div className="rounded border border-slate-200 bg-white p-4 shadow">Delivered: {stats.delivered}</div>
+        <div className="rounded border border-slate-200 bg-white p-4 shadow">Pending Riders: {stats.pendingRiders}</div>
+      </div>
+    </AdminPageTitle>
   );
 }

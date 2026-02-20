@@ -17,6 +17,10 @@ import ActiveDeliveryPage from '../pages/rider/ActiveDeliveryPage';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminDeliveriesPage from '../pages/admin/AdminDeliveriesPage';
 import AdminRidersPage from '../pages/admin/AdminRidersPage';
+import AdminPricingZonesPage from '../pages/admin/AdminPricingZonesPage';
+import AdminDisputesPage from '../pages/admin/AdminDisputesPage';
+import AdminAnalyticsPage from '../pages/admin/AdminAnalyticsPage';
+import AdminSettingsPage from '../pages/admin/AdminSettingsPage';
 import CustomerRoute from './CustomerRoute';
 import RiderRoute from './RiderRoute';
 import AdminRoute from './AdminRoute';
@@ -51,9 +55,14 @@ export default function AppRoutes() {
 
         <Route element={<AdminRoute />}>
           <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="deliveries" element={<AdminDeliveriesPage />} />
+            <Route path="orders" element={<AdminDeliveriesPage />} />
             <Route path="riders" element={<AdminRidersPage />} />
+            <Route path="pricing-zones" element={<AdminPricingZonesPage />} />
+            <Route path="disputes" element={<AdminDisputesPage />} />
+            <Route path="analytics" element={<AdminAnalyticsPage />} />
+            <Route path="settings" element={<AdminSettingsPage />} />
           </Route>
         </Route>
       </Route>
