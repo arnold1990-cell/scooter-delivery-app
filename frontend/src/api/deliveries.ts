@@ -2,7 +2,16 @@ import http from './http';
 import type { Delivery, DeliveryStatus } from '../types';
 
 const deliveriesApi = {
-  async create(payload: { pickupAddress: string; dropoffAddress: string; price: number; notes?: string }) {
+  async create(payload: {
+    pickupAddress: string;
+    dropoffAddress: string;
+    pickupLatitude: number;
+    pickupLongitude: number;
+    dropoffLatitude: number;
+    dropoffLongitude: number;
+    price?: number;
+    notes?: string;
+  }) {
     const { data } = await http.post<Delivery>('/api/deliveries', payload);
     return data;
   },
