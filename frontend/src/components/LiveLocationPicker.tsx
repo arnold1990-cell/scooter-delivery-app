@@ -32,6 +32,19 @@ const MAPBOX_SCRIPT_URL = 'https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl
 const DEFAULT_CENTER = { lat: -24.6282, lng: 25.9231 };
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 
+const getGeolocationErrorMessage = (error: GeolocationPositionError) => {
+  switch (error.code) {
+    case error.PERMISSION_DENIED:
+      return 'Location permission was denied. Enable it in browser settings and try again.';
+    case error.TIMEOUT:
+      return 'Timed out while fetching your location. Try again in an open area or with better signal.';
+    case error.POSITION_UNAVAILABLE:
+      return 'Your current location is unavailable right now. Please try again in a moment.';
+    default:
+      return 'Unable to access your location. Check browser permissions and try again.';
+  }
+};
+
 const loadMapboxScript = async (): Promise<MapboxGlobal | null> => {
   if (typeof window === 'undefined') {
     return null;
@@ -202,18 +215,37 @@ export default function LiveLocationPicker({
       return;
     }
 
+    setLocationError('');
+
+    const onSuccess = ({ coords }: GeolocationPosition) => {
+      setLocationError('');
+      const next = { lat: coords.latitude, lng: coords.longitude };
+      setSelected((prev) => ({ ...prev, ...next }));
+      mapRef.current?.easeTo({ center: [next.lng, next.lat], zoom: 16 });
+      reverseGeocode(next.lat, next.lng);
+    };
+
+    const fallbackToCoarseLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        onSuccess,
+        (fallbackError) => {
+          setLocationError(getGeolocationErrorMessage(fallbackError));
+        },
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+      );
+    };
+
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        setLocationError('');
-        const next = { lat: coords.latitude, lng: coords.longitude };
-        setSelected((prev) => ({ ...prev, ...next }));
-        mapRef.current?.easeTo({ center: [next.lng, next.lat], zoom: 16 });
-        reverseGeocode(next.lat, next.lng);
+      onSuccess,
+      (error) => {
+        if (error.code === error.TIMEOUT) {
+          fallbackToCoarseLocation();
+          return;
+        }
+
+        setLocationError(getGeolocationErrorMessage(error));
       },
-      () => {
-        setLocationError('Unable to access your location. Check browser permissions and try again.');
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
   };
 
