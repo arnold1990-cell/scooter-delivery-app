@@ -1,21 +1,21 @@
-import http from './http';
+import { api } from './client';
 import type { ApprovalStatus, RiderProfile } from '../types';
 
 const ridersApi = {
   async me() {
-    const { data } = await http.get<RiderProfile>('/riders/me');
+    const { data } = await api.get<RiderProfile>('/riders/me');
     return data;
   },
   async toggleOnline(online: boolean) {
-    const { data } = await http.patch<RiderProfile>('/riders/me/online', { online });
+    const { data } = await api.patch<RiderProfile>('/riders/me/online', { online });
     return data;
   },
   async all() {
-    const { data } = await http.get<RiderProfile[]>('/admin/riders');
+    const { data } = await api.get<RiderProfile[]>('/admin/riders');
     return data;
   },
   async approve(userId: string, status: ApprovalStatus) {
-    const { data } = await http.patch<RiderProfile>(`/admin/riders/${userId}/approve`, { status });
+    const { data } = await api.patch<RiderProfile>(`/admin/riders/${userId}/approve`, { status });
     return data;
   }
 };

@@ -1,4 +1,4 @@
-import http from './http';
+import { api } from './client';
 import type { Delivery, DeliveryStatus } from '../types';
 
 const deliveriesApi = {
@@ -12,27 +12,27 @@ const deliveriesApi = {
     price?: number;
     notes?: string;
   }) {
-    const { data } = await http.post<Delivery>('/deliveries', payload);
+    const { data } = await api.post<Delivery>('/deliveries', payload);
     return data;
   },
   async my() {
-    const { data } = await http.get<Delivery[]>('/deliveries/my');
+    const { data } = await api.get<Delivery[]>('/deliveries/my');
     return data;
   },
   async jobs() {
-    const { data } = await http.get<Delivery[]>('/rider/jobs');
+    const { data } = await api.get<Delivery[]>('/rider/jobs');
     return data;
   },
   async active() {
-    const { data } = await http.get<Delivery[]>('/rider/active');
+    const { data } = await api.get<Delivery[]>('/rider/active');
     return data;
   },
   async updateStatus(id: string, status: DeliveryStatus) {
-    const { data } = await http.post<Delivery>(`/deliveries/${id}/status`, { status });
+    const { data } = await api.post<Delivery>(`/deliveries/${id}/status`, { status });
     return data;
   },
   async adminAll() {
-    const { data } = await http.get('/admin/deliveries');
+    const { data } = await api.get('/admin/deliveries');
     return data.content as Delivery[];
   }
 };
