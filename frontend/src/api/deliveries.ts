@@ -28,7 +28,7 @@ const deliveriesApi = {
     return data;
   },
   async updateStatus(id: string, status: DeliveryStatus) {
-    const { data } = await http.patch<Delivery>(`/api/deliveries/${id}/status`, { status });
+    const { data } = await http.post<Delivery>(`/api/deliveries/${id}/status`, { status });
     return data;
   },
   async adminAll() {
