@@ -1,0 +1,136 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: scooter-postgres
+    environment:
+      POSTGRES_USER: scooter
+      POSTGRES_PASSWORD: scooter
+      POSTGRES_DB: scooter
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: scooter-redis
+    ports:
+      - "6379:6379"
+
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.1.6
+    container_name: scooter-redpanda
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp=1
+      - --memory=1G
+      - --reserve-memory=0M
+      - --node-id=0
+      - --check=false
+      - --kafka-addr=PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr=PLAINTEXT://redpanda:9092
+      - --pandaproxy-addr=0.0.0.0:8082
+      - --advertise-pandaproxy-addr=redpanda:8082
+    ports:
+      - "9092:9092"
+      - "8082:8082"
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: scooter-kafka-ui
+    ports:
+      - "9080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: redpanda:9092
+    depends_on:
+      - redpanda
+
+  minio:
+    image: minio/minio:latest
+    container_name: scooter-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    container_name: scooter-keycloak
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    ports:
+      - "8081:8080"
+
+  api-gateway:
+    build: ../services/api-gateway
+    environment:
+      SERVER_PORT: 8080
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/scooter
+      DELIVERY_BASE_URL: http://delivery:8080
+      DISPATCH_BASE_URL: http://dispatch:8080
+      TRACKING_BASE_URL: http://tracking:8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - keycloak
+      - delivery
+      - dispatch
+      - tracking
+
+  delivery:
+    build: ../services/delivery
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/scooter
+      SPRING_DATASOURCE_USERNAME: scooter
+      SPRING_DATASOURCE_PASSWORD: scooter
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/scooter
+    depends_on:
+      - postgres
+      - redpanda
+      - keycloak
+
+  dispatch:
+    build: ../services/dispatch
+    environment:
+      SERVER_PORT: 8080
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/scooter
+    depends_on:
+      - redis
+      - redpanda
+      - keycloak
+
+  tracking:
+    build: ../services/tracking
+    environment:
+      SERVER_PORT: 8080
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/scooter
+    depends_on:
+      - redis
+      - redpanda
+      - keycloak
+
+volumes:
+  postgres_data:
+  minio_data:
