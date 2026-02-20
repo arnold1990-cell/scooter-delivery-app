@@ -8,7 +8,7 @@ const deliveryService = {
     return data;
   },
   async updateStatus(deliveryId, status) {
-    const { data } = await http.patch(`/api/deliveries/${deliveryId}/status`, { status });
+    const { data } = await http.post(`/api/deliveries/${deliveryId}/status`, { status });
     return data;
   },
   async getAllDeliveries() {
@@ -16,7 +16,7 @@ const deliveryService = {
     return unwrap(data);
   },
   async getAssignedDeliveries() {
-    const { data } = await http.get('/api/rider/assigned-deliveries');
+    const { data } = await http.get('/api/rider/active');
     return unwrap(data);
   }
 };
