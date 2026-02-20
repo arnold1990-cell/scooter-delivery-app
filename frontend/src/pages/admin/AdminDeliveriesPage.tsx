@@ -3,6 +3,7 @@ import deliveryService from '../../api/deliveryService';
 import ridersApi from '../../api/riders';
 import StatusBadge from '../../components/StatusBadge';
 import type { Delivery, DeliveryStatus, RiderProfile } from '../../types';
+import AdminPageTitle from './AdminPageTitle';
 
 const statusOptions: DeliveryStatus[] = ['CREATED', 'ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'DELIVERED', 'CANCELLED'];
 
@@ -34,52 +35,60 @@ export default function AdminDeliveriesPage() {
   };
 
   return (
-    <div className="bg-white p-4 rounded shadow overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr>
-            <th className="text-left p-2">Delivery</th>
-            <th className="text-left p-2">Route</th>
-            <th className="text-left p-2">Rider</th>
-            <th className="text-left p-2">Status</th>
-            <th className="text-left p-2">Change Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {deliveries.map((delivery) => (
-            <tr key={delivery.id} className="border-t">
-              <td className="p-2">#{delivery.id.slice(0, 8)}</td>
-              <td className="p-2">{delivery.pickupAddress} → {delivery.dropoffAddress}</td>
-              <td className="p-2">
-                <select
-                  className="border rounded px-2 py-1"
-                  value={delivery.riderId || ''}
-                  onChange={(e) => assign(delivery.id, e.target.value)}
-                >
-                  <option value="">Unassigned</option>
-                  {approvedRiders.map((rider) => (
-                    <option key={rider.id} value={rider.userId}>
-                      {rider.fullName || rider.email || rider.userId}
-                    </option>
-                  ))}
-                </select>
-              </td>
-              <td className="p-2"><StatusBadge status={delivery.status} /></td>
-              <td className="p-2">
-                <select
-                  className="border rounded px-2 py-1"
-                  value={delivery.status}
-                  onChange={(e) => updateStatus(delivery.id, e.target.value as DeliveryStatus)}
-                >
-                  {statusOptions.map((status) => (
-                    <option key={status} value={status}>{status}</option>
-                  ))}
-                </select>
-              </td>
+    <AdminPageTitle title="Orders">
+      <div className="overflow-x-auto rounded border border-slate-200 bg-white p-4 shadow">
+        <table className="w-full text-sm">
+          <thead>
+            <tr>
+              <th className="p-2 text-left">Order</th>
+              <th className="p-2 text-left">Route</th>
+              <th className="p-2 text-left">Rider</th>
+              <th className="p-2 text-left">Status</th>
+              <th className="p-2 text-left">Change Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {deliveries.map((delivery) => (
+              <tr key={delivery.id} className="border-t">
+                <td className="p-2">#{delivery.id.slice(0, 8)}</td>
+                <td className="p-2">
+                  {delivery.pickupAddress} → {delivery.dropoffAddress}
+                </td>
+                <td className="p-2">
+                  <select
+                    className="rounded border px-2 py-1"
+                    value={delivery.riderId || ''}
+                    onChange={(e) => assign(delivery.id, e.target.value)}
+                  >
+                    <option value="">Unassigned</option>
+                    {approvedRiders.map((rider) => (
+                      <option key={rider.id} value={rider.userId}>
+                        {rider.fullName || rider.email || rider.userId}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+                <td className="p-2">
+                  <StatusBadge status={delivery.status} />
+                </td>
+                <td className="p-2">
+                  <select
+                    className="rounded border px-2 py-1"
+                    value={delivery.status}
+                    onChange={(e) => updateStatus(delivery.id, e.target.value as DeliveryStatus)}
+                  >
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </AdminPageTitle>
   );
 }

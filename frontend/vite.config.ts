@@ -2,7 +2,10 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const appBase = process.env.VITE_APP_BASE || '/';
+
 export default defineConfig({
+  base: appBase,
   plugins: [react()],
   resolve: {
     alias: [
@@ -17,7 +20,8 @@ export default defineConfig({
     ]
   },
   server: {
-    port: 5173,
+    port: 5174,
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
