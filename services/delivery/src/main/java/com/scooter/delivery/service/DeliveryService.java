@@ -17,9 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class DeliveryService {
 
     private static final Map<DeliveryStatus, Set<DeliveryStatus>> TRANSITIONS = Map.of(
-            DeliveryStatus.CREATED, Set.of(DeliveryStatus.ASSIGNED, DeliveryStatus.CANCELLED),
+            DeliveryStatus.PENDING, Set.of(DeliveryStatus.ASSIGNED, DeliveryStatus.CANCELLED),
             DeliveryStatus.ASSIGNED, Set.of(DeliveryStatus.PICKED_UP, DeliveryStatus.CANCELLED, DeliveryStatus.FAILED),
-            DeliveryStatus.PICKED_UP, Set.of(DeliveryStatus.DELIVERED, DeliveryStatus.FAILED)
+            DeliveryStatus.PICKED_UP, Set.of(DeliveryStatus.IN_TRANSIT, DeliveryStatus.FAILED),
+            DeliveryStatus.IN_TRANSIT, Set.of(DeliveryStatus.DELIVERED, DeliveryStatus.FAILED)
     );
 
     private final DeliveryRepository repository;
@@ -41,7 +42,7 @@ public class DeliveryService {
         entity.setPickupAddress(request.pickupAddress());
         entity.setDropoffAddress(request.dropoffAddress());
         entity.setIdempotencyKey(idempotencyKey);
-        entity.setStatus(DeliveryStatus.CREATED);
+        entity.setStatus(DeliveryStatus.PENDING);
         var saved = repository.save(entity);
         kafkaTemplate.send("delivery.created", saved.getId().toString(),
                 new DeliveryEvent(saved.getId(), customerId, saved.getPickupAddress(), saved.getDropoffAddress(), saved.getStatus().name(), OffsetDateTime.now()));
