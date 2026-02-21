@@ -1,7 +1,15 @@
+BEGIN;
+
+-- 1) Create new enum for the updated lifecycle
 CREATE TYPE delivery_status_new AS ENUM (
   'PENDING','ASSIGNED','PICKED_UP','IN_TRANSIT','DELIVERED','CANCELLED','FAILED'
 );
 
+-- 2) Drop old default BEFORE changing the type (fixes cast error)
+ALTER TABLE deliveries
+  ALTER COLUMN status DROP DEFAULT;
+
+-- 3) Convert column type + map old values
 ALTER TABLE deliveries
   ALTER COLUMN status TYPE delivery_status_new
   USING (
@@ -13,8 +21,16 @@ ALTER TABLE deliveries
     END
   )::delivery_status_new;
 
-DROP TYPE delivery_status;
+-- 4) Set new default
+ALTER TABLE deliveries
+  ALTER COLUMN status SET DEFAULT 'PENDING';
+
+-- 5) Swap enum types
+ALTER TYPE delivery_status RENAME TO delivery_status_old;
 ALTER TYPE delivery_status_new RENAME TO delivery_status;
+DROP TYPE delivery_status_old;
+
+COMMIT;
 
 ALTER TABLE deliveries
   ADD COLUMN pickup_latitude NUMERIC(10,7),

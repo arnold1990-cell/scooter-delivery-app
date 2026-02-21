@@ -1,9 +1,10 @@
 package com.scooter.delivery.entity;
 
 public enum DeliveryStatus {
-    CREATED,
+    PENDING,
     ASSIGNED,
     PICKED_UP,
+    IN_TRANSIT,
     DELIVERED,
     CANCELLED,
     FAILED
