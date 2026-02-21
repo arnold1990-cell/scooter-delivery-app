@@ -1,10 +1,12 @@
 package com.scooter.app.shared.jwt;
 
+import com.scooter.app.modules.iam.User;
+import com.scooter.app.modules.iam.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +16,11 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
+
+    private final UserRepository userRepository;
+    private final JwtRoleMapper jwtRoleMapper;
 
     @Value("${app.jwt.secret}")
     private String secret;
@@ -23,19 +29,19 @@ public class JwtService {
     private long expirationMinutes;
 
     public String generateToken(UserDetails userDetails) {
-        String role = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse("ROLE_CUSTOMER")
-                .replace("ROLE_", "");
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User not found for JWT generation"));
+
+        String normalizedRole = jwtRoleMapper.normalizeRole(user.getRole().name());
+        List<String> roles = List.of(normalizedRole);
 
         Date issuedAt = new Date();
         Date expiration = new Date(issuedAt.getTime() + expirationMinutes * 60_000);
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
-                .claim("role", role)
-                .claim("roles", List.of(role))
+                .claim("role", normalizedRole)
+                .claim("roles", roles)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
                 .signWith(getSigningKey())
@@ -44,6 +50,18 @@ public class JwtService {
 
     public String extractUsername(String token) {
         return extractAllClaims(token).getSubject();
+    }
+
+    public List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        Object rawRoles = claims.get("roles");
+
+        if (rawRoles instanceof List<?> roles) {
+            return roles.stream().map(String::valueOf).toList();
+        }
+
+        String role = claims.get("role", String.class);
+        return role == null ? List.of() : List.of(role);
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
