@@ -16,20 +16,31 @@ export function decodeJwt(token) {
   }
 }
 
-export function extractRoleFromToken(token) {
+export function extractRolesFromToken(token) {
   const payload = decodeJwt(token);
-  if (!payload) return null;
+  if (!payload) return [];
 
-  if (typeof payload.role === 'string') return payload.role;
-
-  if (Array.isArray(payload.roles) && payload.roles.length > 0) {
-    return payload.roles[0];
+  if (Array.isArray(payload.roles)) {
+    return payload.roles.filter((role) => typeof role === 'string');
   }
 
-  if (Array.isArray(payload.authorities) && payload.authorities.length > 0) {
-    const firstAuthority = payload.authorities[0];
-    return typeof firstAuthority === 'string' ? firstAuthority.replace('ROLE_', '') : null;
+  if (typeof payload.role === 'string') {
+    return [payload.role];
   }
 
-  return null;
+  if (Array.isArray(payload.authorities)) {
+    return payload.authorities.filter((authority) => typeof authority === 'string');
+  }
+
+  return [];
+}
+
+export function tokenHasRole(token, role) {
+  return extractRolesFromToken(token).includes(role);
+}
+
+export function extractRoleFromToken(token) {
+  const roles = extractRolesFromToken(token);
+  if (roles.length === 0) return null;
+  return roles[0].replace('ROLE_', '');
 }
