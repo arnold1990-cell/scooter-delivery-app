@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { getToken, removeToken } from '../utils/token';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
+const explicitApiUrl = import.meta.env.VITE_API_URL;
+const API_BASE_URL = explicitApiUrl && explicitApiUrl.trim() !== '' ? explicitApiUrl : '/api';
 
 if (import.meta.env.DEV) {
   console.log('[API_BASE_URL]', API_BASE_URL);
