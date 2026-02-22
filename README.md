@@ -27,11 +27,33 @@ docker run -d --name scooter-pg \
 ```
 
 ### Backend
+1) Create local environment file (already gitignored):
 ```bash
+cat > .env <<'EOF'
+SERVER_PORT=8080
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/scooterdb
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=CHANGE_ME_STRONG_PASSWORD
+CORS_ALLOWED_ORIGINS=https://scooter-delivery.duckdns.org,http://localhost:5173
+JWT_SECRET=CHANGE_ME_TO_A_LONG_RANDOM_SECRET_32+_CHARS
+JWT_EXPIRATION_MINUTES=1440
+ADMIN_EMAIL=
+ADMIN_PASSWORD_BCRYPT=$2a$12$7xxy7f8aPR2Eq7vWvJ4P3OF7fAQUm6mLCfWfslWQj8fmgJ8q2HEga
+APP_FLYWAY_AUTO_REPAIR_ON_VALIDATION_ERROR=false
+EOF
+```
+
+2) Export variables and run Spring Boot (Linux/macOS):
+```bash
+set -a && source .env && set +a
 cd backend
-SCOOTER_DB_URL=jdbc:postgresql://localhost:5432/scooterdb \
-SCOOTER_DB_USERNAME=scooter \
-SCOOTER_DB_PASSWORD=scooter \
+mvn spring-boot:run
+```
+
+3) Windows PowerShell:
+```powershell
+Get-Content .env | ForEach-Object { if($_ -match "^(.*?)=(.*)$"){ [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2]) } }
+cd backend
 mvn spring-boot:run
 ```
 
@@ -56,4 +78,34 @@ If your Git provider shows **"binary files not supported"** for files that shoul
 After adding `.gitattributes`, re-stage the affected files so Git recalculates attributes:
 ```bash
 git add --renormalize .
+```
+
+## VPS (systemd) environment setup
+Use an environment file and let systemd load it (recommended for production):
+
+```ini
+# /etc/systemd/system/scooter-backend.service
+[Unit]
+Description=Scooter Delivery Backend
+After=network.target
+
+[Service]
+Type=simple
+User=scooter
+WorkingDirectory=/opt/scooter-backend/backend
+EnvironmentFile=/opt/scooter-backend/.env
+ExecStart=/usr/bin/java -jar /opt/scooter-backend/backend/target/backend-0.0.1-SNAPSHOT.jar
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then reload and start:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable scooter-backend
+sudo systemctl restart scooter-backend
+sudo systemctl status scooter-backend
 ```
