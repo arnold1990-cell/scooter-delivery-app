@@ -1,11 +1,11 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/scooterdb
-    username: postgres
-    password: Crt@Ailsa
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/scooterdb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -24,9 +24,9 @@ app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:https://scooter-delivery.duckdns.org,http://localhost:5173}
   flyway:
-    auto-repair-on-validation-error: false
+    auto-repair-on-validation-error: ${APP_FLYWAY_AUTO_REPAIR_ON_VALIDATION_ERROR:false}
   jwt:
-    secret: ${JWT_SECRET:MyVeryLongSecretKeyThatIsAtLeast256BitsLong!!ForHS256}
+    secret: ${JWT_SECRET:}
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:1440}
 
 springdoc:
