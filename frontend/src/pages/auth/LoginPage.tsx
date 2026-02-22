@@ -14,6 +14,9 @@ const roleHome: Record<PortalRole, string> = {
   ADMIN: '/admin/dashboard'
 };
 
+const getPortalAccessError = (role: PortalRole) =>
+  `You are not allowed to access this portal. ${role.charAt(0) + role.slice(1).toLowerCase()} role required.`;
+
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -29,7 +32,7 @@ export default function LoginPage() {
     try {
       const user = await login({ email, password });
       if (!user.roles.includes(portalRole)) {
-        setError('You are not allowed to access this portal. Admin role required.');
+        setError(getPortalAccessError(portalRole));
         return;
       }
       navigate(roleHome[portalRole]);
@@ -42,7 +45,7 @@ export default function LoginPage() {
       if (err.status === 401) {
         setError('Invalid email/phone or password.');
       } else if (err.status === 403) {
-        setError('You are not allowed to access this portal. Admin role required.');
+        setError(getPortalAccessError(portalRole));
       } else {
         const message = (err.data as { message?: string } | null)?.message;
         setError(message || 'Login failed');
