@@ -31,7 +31,7 @@ public class AdminAnalyticsController {
     private final DeliveryStatusHistoryRepository historyRepository;
 
     @GetMapping("/summary")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public AnalyticsSummaryResponse summary(@RequestParam LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = date.plusDays(1).atStartOfDay();
