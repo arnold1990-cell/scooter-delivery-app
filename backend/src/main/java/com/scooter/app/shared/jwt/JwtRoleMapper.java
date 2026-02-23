@@ -11,6 +11,8 @@ import java.util.List;
 @Component
 public class JwtRoleMapper {
 
+    private static final String ROLE_PREFIX = "ROLE_";
+
     public Collection<? extends GrantedAuthority> toAuthorities(List<String> roles) {
         if (roles == null || roles.isEmpty()) {
             return Collections.emptyList();
@@ -18,17 +20,22 @@ public class JwtRoleMapper {
 
         return roles.stream()
                 .filter(role -> role != null && !role.isBlank())
-                .map(this::normalizeRole)
+                .map(this::toAuthority)
                 .map(SimpleGrantedAuthority::new)
                 .toList();
     }
 
     public String normalizeRole(String role) {
         if (role == null || role.isBlank()) {
-            return "ROLE_CUSTOMER";
+            return "CUSTOMER";
         }
 
         String trimmed = role.trim();
-        return trimmed.startsWith("ROLE_") ? trimmed : "ROLE_" + trimmed;
+        return trimmed.startsWith(ROLE_PREFIX) ? trimmed.substring(ROLE_PREFIX.length()) : trimmed;
+    }
+
+    public String toAuthority(String role) {
+        String normalizedRole = normalizeRole(role).toUpperCase();
+        return ROLE_PREFIX + normalizedRole;
     }
 }
