@@ -18,35 +18,35 @@ class SecurityRoleAccessTest {
     private MockMvc mockMvc;
 
     @Test
-    @WithMockUser(roles = "CUSTOMER")
+    @WithMockUser(authorities = "ROLE_CUSTOMER")
     void customerRoleCanReachCustomerPath() throws Exception {
-        mockMvc.perform(get("/api/customer/non-existent"))
+        mockMvc.perform(get("/api/customers/non-existent"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(roles = "RIDER")
+    @WithMockUser(authorities = "ROLE_RIDER")
     void riderRoleCannotReachCustomerPath() throws Exception {
-        mockMvc.perform(get("/api/customer/non-existent"))
+        mockMvc.perform(get("/api/customers/non-existent"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    @WithMockUser(roles = "RIDER")
+    @WithMockUser(authorities = "ROLE_RIDER")
     void riderRoleCanReachRiderPath() throws Exception {
-        mockMvc.perform(get("/api/rider/non-existent"))
+        mockMvc.perform(get("/api/riders/non-existent"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(authorities = "ROLE_ADMIN")
     void adminRoleCanReachAdminPath() throws Exception {
         mockMvc.perform(get("/api/admin/non-existent"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(roles = "CUSTOMER")
+    @WithMockUser(authorities = "ROLE_CUSTOMER")
     void customerRoleCannotReachAdminPath() throws Exception {
         mockMvc.perform(get("/api/admin/non-existent"))
                 .andExpect(status().isForbidden());
