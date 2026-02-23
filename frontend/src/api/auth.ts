@@ -1,6 +1,6 @@
 import { api } from './client';
-import { normalizeRoles } from '../constants/roles';
-import type { AuthUser, UserRole } from '../types';
+import { normalizeAuthorities, normalizeRoles } from '../constants/roles';
+import type { AuthUser, Authority, UserRole } from '../types';
 
 const decodeTokenPayload = (token: string): Record<string, unknown> | null => {
   try {
@@ -14,14 +14,14 @@ const decodeTokenPayload = (token: string): Record<string, unknown> | null => {
   }
 };
 
-const extractRolesFromToken = (token: string): UserRole[] => {
+const extractAuthoritiesFromToken = (token: string): Authority[] => {
   const payload = decodeTokenPayload(token);
   if (!payload) return [];
 
-  const tokenRoles = payload.roles;
-  if (!Array.isArray(tokenRoles)) return [];
+  const tokenAuthorities = payload.authorities;
+  if (!Array.isArray(tokenAuthorities)) return [];
 
-  return normalizeRoles(tokenRoles.map((role) => String(role)));
+  return normalizeAuthorities(tokenAuthorities.map((authority) => String(authority)));
 };
 
 export interface RegisterPayload {
@@ -54,13 +54,13 @@ interface MeResponse {
 
 const toAuthUser = (data: AuthApiResponse): AuthUser => {
   const token = data.accessToken || data.token || '';
-  const tokenRoles = extractRolesFromToken(token);
-  const mergedRoles = normalizeRoles([...(data.roles ?? []), ...tokenRoles]);
+  const tokenAuthorities = extractAuthoritiesFromToken(token);
+  const mergedRoles = normalizeRoles([...(data.roles ?? []), ...tokenAuthorities]);
 
   if (import.meta.env.DEV) {
     console.debug('[auth] login/register roles resolved', {
       responseRoles: data.roles,
-      tokenRoles,
+      tokenAuthorities,
       mergedRoles
     });
   }
@@ -70,6 +70,7 @@ const toAuthUser = (data: AuthApiResponse): AuthUser => {
     email: data.email,
     fullName: data.fullName,
     roles: mergedRoles,
+    authorities: tokenAuthorities,
     accessToken: token,
     refreshToken: data.refreshToken
   };

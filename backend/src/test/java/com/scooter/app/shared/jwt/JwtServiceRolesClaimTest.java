@@ -35,7 +35,7 @@ class JwtServiceRolesClaimTest {
     }
 
     @Test
-    void generateTokenStoresRolesClaimWithoutRolePrefix() {
+    void generateTokenStoresAuthoritiesClaimWithRolePrefix() {
         User user = User.builder()
                 .id(UUID.randomUUID())
                 .email("customer@example.com")
@@ -54,7 +54,7 @@ class JwtServiceRolesClaimTest {
 
         String token = jwtService.generateToken(details);
 
-        List<String> extractedRoles = jwtService.extractRoles(token);
-        assertThat(extractedRoles).containsExactly("CUSTOMER");
+        List<String> extractedAuthorities = jwtService.extractAuthorities(token);
+        assertThat(extractedAuthorities).containsExactly("ROLE_CUSTOMER");
     }
 }

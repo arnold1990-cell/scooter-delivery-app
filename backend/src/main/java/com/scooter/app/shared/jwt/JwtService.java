@@ -34,16 +34,18 @@ public class JwtService {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found for JWT generation"));
 
-        List<String> roles = List.of(jwtRoleMapper.normalizeRole(user.getRole().name()).toUpperCase());
+        List<String> authorities = userDetails.getAuthorities().stream()
+                .map(Object::toString)
+                .toList();
 
         Date issuedAt = new Date();
         Date expiration = new Date(issuedAt.getTime() + expirationMinutes * 60_000);
 
-        log.info("Generating JWT for user={} with rolesClaim={}", userDetails.getUsername(), roles);
+        log.info("Generating JWT for user={} with authoritiesClaim={}", userDetails.getUsername(), authorities);
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
-                .claim("roles", roles)
+                .claim("authorities", authorities)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
                 .signWith(getSigningKey())
@@ -54,17 +56,26 @@ public class JwtService {
         return extractAllClaims(token).getSubject();
     }
 
-    public List<String> extractRoles(String token) {
+    public List<String> extractAuthorities(String token) {
         Claims claims = extractAllClaims(token);
-        Object rawRoles = claims.get("roles");
+        Object rawAuthorities = claims.get("authorities");
 
-        if (rawRoles instanceof List<?> roles) {
-            List<String> normalizedRoles = roles.stream()
+        if (rawAuthorities instanceof List<?> authorities) {
+            return authorities.stream()
                     .map(String::valueOf)
-                    .map(jwtRoleMapper::normalizeRole)
+                    .map(jwtRoleMapper::toAuthority)
                     .map(String::toUpperCase)
                     .toList();
-            return normalizedRoles;
+        }
+
+        // Backward compatibility with older tokens.
+        Object rawRoles = claims.get("roles");
+        if (rawRoles instanceof List<?> roles) {
+            return roles.stream()
+                    .map(String::valueOf)
+                    .map(jwtRoleMapper::toAuthority)
+                    .map(String::toUpperCase)
+                    .toList();
         }
 
         return List.of();
