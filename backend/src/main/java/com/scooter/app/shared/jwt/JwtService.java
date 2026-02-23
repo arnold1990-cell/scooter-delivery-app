@@ -6,6 +6,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JwtService {
 
     private final UserRepository userRepository;
@@ -32,15 +34,15 @@ public class JwtService {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("User not found for JWT generation"));
 
-        String normalizedRole = jwtRoleMapper.normalizeRole(user.getRole().name());
-        List<String> roles = List.of(normalizedRole);
+        List<String> roles = List.of(jwtRoleMapper.normalizeRole(user.getRole().name()).toUpperCase());
 
         Date issuedAt = new Date();
         Date expiration = new Date(issuedAt.getTime() + expirationMinutes * 60_000);
 
+        log.info("Generating JWT for user={} with rolesClaim={}", userDetails.getUsername(), roles);
+
         return Jwts.builder()
                 .subject(userDetails.getUsername())
-                .claim("role", normalizedRole)
                 .claim("roles", roles)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
@@ -57,11 +59,15 @@ public class JwtService {
         Object rawRoles = claims.get("roles");
 
         if (rawRoles instanceof List<?> roles) {
-            return roles.stream().map(String::valueOf).toList();
+            List<String> normalizedRoles = roles.stream()
+                    .map(String::valueOf)
+                    .map(jwtRoleMapper::normalizeRole)
+                    .map(String::toUpperCase)
+                    .toList();
+            return normalizedRoles;
         }
 
-        String role = claims.get("role", String.class);
-        return role == null ? List.of() : List.of(role);
+        return List.of();
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {

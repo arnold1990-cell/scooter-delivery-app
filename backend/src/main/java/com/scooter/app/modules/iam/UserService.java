@@ -75,6 +75,10 @@ public class UserService {
         }
 
         UserDetails details = userDetailsService.loadUserByUsername(user.getEmail());
+        log.info("Registration success email={} role={} authorities={}",
+                user.getEmail(),
+                user.getRole().name(),
+                details.getAuthorities().stream().map(a -> a.getAuthority()).toList());
         String token = jwtService.generateToken(details);
         return toAuthResponse(user, token);
     }
@@ -90,6 +94,10 @@ public class UserService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         UserDetails details = userDetailsService.loadUserByUsername(user.getEmail());
+        log.info("Login success email={} role={} authorities={}",
+                user.getEmail(),
+                user.getRole().name(),
+                details.getAuthorities().stream().map(a -> a.getAuthority()).toList());
         String token = jwtService.generateToken(details);
         return toAuthResponse(user, token);
     }

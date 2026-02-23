@@ -45,6 +45,12 @@ export default function LoginPage() {
 
     try {
       const user = await login({ email, password });
+      if (import.meta.env.DEV) {
+        console.debug('[auth] portal login check', {
+          selectedPortalRole: portalRole,
+          userRoles: user.roles
+        });
+      }
       if (!user.roles.includes(portalRole)) {
         setError(getPortalAccessError(portalRole));
         return;

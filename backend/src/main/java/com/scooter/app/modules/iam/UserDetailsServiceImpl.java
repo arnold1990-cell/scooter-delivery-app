@@ -1,7 +1,7 @@
 package com.scooter.app.modules.iam;
 
+import com.scooter.app.shared.jwt.JwtRoleMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final JwtRoleMapper jwtRoleMapper;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -21,7 +22,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPasswordHash(),
-                java.util.List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                        jwtRoleMapper.toAuthority(user.getRole().name())
+                ))
         );
     }
 }
