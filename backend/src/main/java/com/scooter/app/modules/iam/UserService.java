@@ -75,7 +75,7 @@ public class UserService {
         }
 
         UserDetails details = userDetailsService.loadUserByUsername(user.getEmail());
-        log.info("Registration success email={} role={} authorities={}",
+        log.debug("Registration success email={} role={} authorities={}",
                 user.getEmail(),
                 user.getRole().name(),
                 details.getAuthorities().stream().map(a -> a.getAuthority()).toList());
@@ -94,7 +94,7 @@ public class UserService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         UserDetails details = userDetailsService.loadUserByUsername(user.getEmail());
-        log.info("Login success email={} role={} authorities={}",
+        log.debug("Login success email={} role={} authorities={}",
                 user.getEmail(),
                 user.getRole().name(),
                 details.getAuthorities().stream().map(a -> a.getAuthority()).toList());
