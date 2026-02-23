@@ -61,7 +61,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                 .map(GrantedAuthority::getAuthority)
                                 .toList());
 
-                log.info("JWT request auth principal={} authorities={}",
+                log.debug("JWT request auth principal={} authorities={}",
                         username,
                         authorities.stream().map(GrantedAuthority::getAuthority).toList());
             }
