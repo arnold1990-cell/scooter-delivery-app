@@ -12,9 +12,4 @@ public class RoleProbeController {
     public String customerPing() {
         return "ok";
     }
-
-    @GetMapping("/admin/ping")
-    public String adminPing() {
-        return "ok";
-    }
 }
