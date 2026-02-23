@@ -41,6 +41,7 @@ interface AuthApiResponse {
   email: string;
   fullName: string;
   roles: UserRole[];
+  authorities?: Authority[];
   accessToken: string;
   refreshToken?: string;
   token?: string;
@@ -50,17 +51,22 @@ interface MeResponse {
   userId: string;
   email: string;
   roles: UserRole[];
+  authorities?: Authority[];
 }
 
 const toAuthUser = (data: AuthApiResponse): AuthUser => {
   const token = data.accessToken || data.token || '';
   const tokenAuthorities = extractAuthoritiesFromToken(token);
-  const mergedRoles = normalizeRoles([...(data.roles ?? []), ...tokenAuthorities]);
+  const responseAuthorities = normalizeAuthorities(data.authorities ?? []);
+  const mergedAuthorities = normalizeAuthorities([...responseAuthorities, ...tokenAuthorities]);
+  const mergedRoles = normalizeRoles([...(data.roles ?? []), ...mergedAuthorities]);
 
   if (import.meta.env.DEV) {
     console.debug('[auth] login/register roles resolved', {
       responseRoles: data.roles,
       tokenAuthorities,
+      responseAuthorities,
+      mergedAuthorities,
       mergedRoles
     });
   }
@@ -70,7 +76,7 @@ const toAuthUser = (data: AuthApiResponse): AuthUser => {
     email: data.email,
     fullName: data.fullName,
     roles: mergedRoles,
-    authorities: tokenAuthorities,
+    authorities: mergedAuthorities,
     accessToken: token,
     refreshToken: data.refreshToken
   };

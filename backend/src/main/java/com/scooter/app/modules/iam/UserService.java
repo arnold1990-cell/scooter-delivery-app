@@ -109,11 +109,13 @@ public class UserService {
 
     private AuthResponse toAuthResponse(User user, String accessToken) {
         String roleName = user.getRole().name();
+        String authority = "ROLE_" + roleName;
         return AuthResponse.builder()
                 .userId(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .roles(List.of(roleName))
+                .authorities(List.of(authority))
                 .accessToken(accessToken)
                 .token(accessToken)
                 .build();
