@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { ROLES } from '../constants/roles';
+import { AUTHORITIES } from '../constants/roles';
 import { useAuth } from '../store/AuthContext';
 import ProtectedRoute from './ProtectedRoute';
 import RequireRole from './RequireRole';
@@ -26,9 +26,9 @@ import AdminSettingsPage from '../pages/admin/AdminSettingsPage';
 
 export default function AppRoutes() {
   const { user } = useAuth();
-  const homePath = user?.roles.includes(ROLES.ADMIN)
+  const homePath = user?.authorities.includes(AUTHORITIES.ADMIN)
     ? '/admin/dashboard'
-    : user?.roles.includes(ROLES.RIDER)
+    : user?.authorities.includes(AUTHORITIES.RIDER)
       ? '/rider/dashboard'
       : '/customer/dashboard';
 
@@ -43,7 +43,7 @@ export default function AppRoutes() {
         <Route
           path="/customer"
           element={
-            <RequireRole allowed={[ROLES.CUSTOMER]}>
+            <RequireRole allowed={[AUTHORITIES.CUSTOMER]}>
               <CustomerLayout />
             </RequireRole>
           }
@@ -56,7 +56,7 @@ export default function AppRoutes() {
         <Route
           path="/rider"
           element={
-            <RequireRole allowed={[ROLES.RIDER]}>
+            <RequireRole allowed={[AUTHORITIES.RIDER]}>
               <RiderLayout />
             </RequireRole>
           }
@@ -70,7 +70,7 @@ export default function AppRoutes() {
         <Route
           path="/admin"
           element={
-            <RequireRole allowed={[ROLES.ADMIN]}>
+            <RequireRole allowed={[AUTHORITIES.ADMIN]}>
               <AdminLayout />
             </RequireRole>
           }

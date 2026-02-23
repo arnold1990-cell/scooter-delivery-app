@@ -13,8 +13,13 @@ public enum UserRole {
             throw new IllegalArgumentException("Role is required");
         }
 
+        String normalized = rawRole.trim().toUpperCase(Locale.ROOT);
+        if (normalized.startsWith("ROLE_")) {
+            normalized = normalized.substring("ROLE_".length());
+        }
+
         return Arrays.stream(values())
-                .filter(role -> role.name().equalsIgnoreCase(rawRole.trim()))
+                .filter(role -> role.name().equalsIgnoreCase(normalized))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Invalid role '%s'. Allowed roles: %s".formatted(

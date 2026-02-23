@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import authApi, { type LoginPayload, type RegisterPayload } from '../api/auth';
-import { normalizeRoles } from '../constants/roles';
+import { normalizeAuthorities, normalizeRoles } from '../constants/roles';
 import { getToken, getUser, removeToken, setRefreshToken, setToken, setUser } from '../utils/token';
 import type { AuthUser, UserRole } from '../types';
 
@@ -26,7 +26,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedUser = getUser();
     if (storedToken && storedUser) {
       setTokenState(storedToken);
-      setUserState({ ...storedUser, roles: normalizeRoles(storedUser.roles) });
+      setUserState({
+        ...storedUser,
+        roles: normalizeRoles(storedUser.roles),
+        authorities: normalizeAuthorities(storedUser.authorities)
+      });
     }
     setLoading(false);
   }, []);

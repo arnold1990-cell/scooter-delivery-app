@@ -1,10 +1,12 @@
 export type UserRole = 'CUSTOMER' | 'RIDER' | 'ADMIN';
+export type Authority = 'ROLE_CUSTOMER' | 'ROLE_RIDER' | 'ROLE_ADMIN';
 
 export interface AuthUser {
   userId: string;
   email: string;
   fullName: string;
   roles: UserRole[];
+  authorities: Authority[];
   accessToken: string;
   refreshToken?: string;
 }

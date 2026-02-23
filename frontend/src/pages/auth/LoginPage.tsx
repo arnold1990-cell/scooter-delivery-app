@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { isHttpError } from '../../api/http';
 import { Link, useNavigate } from 'react-router-dom';
-import { ROLES } from '../../constants/roles';
+import { AUTHORITIES, ROLES } from '../../constants/roles';
 import { useAuth } from '../../store/AuthContext';
 import type { UserRole } from '../../types';
 
@@ -15,8 +15,14 @@ const roleHome: Record<PortalRole, string> = {
   ADMIN: '/admin/dashboard'
 };
 
+const portalAuthority: Record<PortalRole, string> = {
+  CUSTOMER: AUTHORITIES.CUSTOMER,
+  RIDER: AUTHORITIES.RIDER,
+  ADMIN: AUTHORITIES.ADMIN
+};
+
 const getPortalAccessError = (role: PortalRole) =>
-  `You are not allowed to access this portal. ${role.charAt(0) + role.slice(1).toLowerCase()} role required.`;
+  `You are not allowed to access this portal. ${portalAuthority[role]} required.`;
 
 const normalizePortalAccessMessage = (message: string | undefined, role: PortalRole) => {
   if (!message) return '';
@@ -29,6 +35,18 @@ const normalizePortalAccessMessage = (message: string | undefined, role: PortalR
   }
 
   return trimmed;
+};
+
+const decodeTokenPayload = (token: string): Record<string, unknown> | null => {
+  try {
+    const [, payload] = token.split('.');
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+    return JSON.parse(atob(padded));
+  } catch {
+    return null;
+  }
 };
 
 export default function LoginPage() {
@@ -46,12 +64,12 @@ export default function LoginPage() {
     try {
       const user = await login({ email, password });
       if (import.meta.env.DEV) {
-        console.debug('[auth] portal login check', {
-          selectedPortalRole: portalRole,
-          userRoles: user.roles
-        });
+        const payload = decodeTokenPayload(user.accessToken);
+        console.debug('[auth] decoded JWT authorities claim', payload?.authorities ?? []);
       }
-      if (!user.roles.includes(portalRole)) {
+
+      const requiredAuthority = portalAuthority[portalRole];
+      if (!user.authorities.includes(requiredAuthority)) {
         setError(getPortalAccessError(portalRole));
         return;
       }
