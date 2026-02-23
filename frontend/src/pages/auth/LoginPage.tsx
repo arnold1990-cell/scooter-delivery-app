@@ -18,6 +18,19 @@ const roleHome: Record<PortalRole, string> = {
 const getPortalAccessError = (role: PortalRole) =>
   `You are not allowed to access this portal. ${role.charAt(0) + role.slice(1).toLowerCase()} role required.`;
 
+const normalizePortalAccessMessage = (message: string | undefined, role: PortalRole) => {
+  if (!message) return '';
+
+  const trimmed = message.trim();
+  if (!trimmed) return '';
+
+  if (trimmed.includes('You are not allowed to access this portal.')) {
+    return getPortalAccessError(role);
+  }
+
+  return trimmed;
+};
+
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -49,7 +62,7 @@ export default function LoginPage() {
         setError(getPortalAccessError(portalRole));
       } else {
         const message = (err.response?.data as { message?: string } | undefined)?.message;
-        setError(message || 'Login failed');
+        setError(normalizePortalAccessMessage(message, portalRole) || 'Login failed');
       }
     }
   };
