@@ -44,6 +44,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             if (jwtService.isTokenValid(jwt, userDetails)) {
                 List<String> jwtAuthorities = jwtService.extractAuthorities(jwt);
+                log.debug("JWT parsed for subject={} with authoritiesClaim={}", username, jwtAuthorities);
                 Collection<? extends GrantedAuthority> authorities = jwtRoleMapper.toAuthorities(jwtAuthorities);
 
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -54,6 +55,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                log.debug("SecurityContext authorities after JWT auth={}",
+                        SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                                .map(GrantedAuthority::getAuthority)
+                                .toList());
 
                 log.info("JWT request auth principal={} authorities={}",
                         username,

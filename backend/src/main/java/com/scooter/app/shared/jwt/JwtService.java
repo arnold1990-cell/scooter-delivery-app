@@ -41,7 +41,7 @@ public class JwtService {
         Date issuedAt = new Date();
         Date expiration = new Date(issuedAt.getTime() + expirationMinutes * 60_000);
 
-        log.info("Generating JWT for user={} with authoritiesClaim={}", userDetails.getUsername(), authorities);
+        log.debug("Generating JWT for user={} with authoritiesClaim={}", userDetails.getUsername(), authorities);
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())

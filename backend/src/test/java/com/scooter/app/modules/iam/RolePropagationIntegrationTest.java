@@ -76,7 +76,7 @@ class RolePropagationIntegrationTest {
     }
 
     @Test
-    void login_returns_jwt_with_authorities() throws Exception {
+    void login_returns_jwt_with_ROLE_CUSTOMER() throws Exception {
         String token = loginAndExtractToken();
         JsonNode payload = decodeJwtPayload(token);
 
@@ -86,16 +86,16 @@ class RolePropagationIntegrationTest {
     }
 
     @Test
-    void customer_endpoint_allows_customer() throws Exception {
+    void customer_ping_ok_with_customer_token() throws Exception {
         String token = loginAndExtractToken();
 
-        mockMvc.perform(get("/api/customers/ping")
+        mockMvc.perform(get("/api/customer/ping")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void admin_endpoint_forbidden_for_customer() throws Exception {
+    void admin_ping_forbidden_with_customer_token() throws Exception {
         String token = loginAndExtractToken();
 
         mockMvc.perform(get("/api/admin/ping")
@@ -104,8 +104,8 @@ class RolePropagationIntegrationTest {
     }
 
     @Test
-    void protected_endpoint_requires_auth() throws Exception {
-        mockMvc.perform(get("/api/customers/ping"))
+    void customer_ping_unauthorized_without_token() throws Exception {
+        mockMvc.perform(get("/api/customer/ping"))
                 .andExpect(status().isUnauthorized());
     }
 
