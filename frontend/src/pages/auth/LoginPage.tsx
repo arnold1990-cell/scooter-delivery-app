@@ -24,6 +24,14 @@ const portalAuthority: Record<PortalRole, string> = {
 const getPortalAccessError = (role: PortalRole) =>
   `You are not allowed to access this portal. ${portalAuthority[role]} required.`;
 
+const ROLE_MESSAGE_REGEX = /ROLE_[A-Z_]+/g;
+
+const extractRoleRequirements = (message: string): string[] => {
+  const matches = message.match(ROLE_MESSAGE_REGEX);
+  if (!matches) return [];
+  return Array.from(new Set(matches));
+};
+
 const normalizePortalAccessMessage = (message: string | undefined, role: PortalRole) => {
   if (!message) return '';
 
@@ -31,6 +39,11 @@ const normalizePortalAccessMessage = (message: string | undefined, role: PortalR
   if (!trimmed) return '';
 
   if (trimmed.includes('You are not allowed to access this portal.')) {
+    const requiredRoles = extractRoleRequirements(trimmed);
+    if (requiredRoles.length > 1) {
+      return `You are not allowed to access this portal. Please choose one of: ${requiredRoles.join(', ')}.`;
+    }
+
     return getPortalAccessError(role);
   }
 
