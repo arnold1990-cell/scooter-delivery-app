@@ -1,4 +1,5 @@
 import { api } from './client';
+import { normalizeRoles } from '../constants/roles';
 import type { AuthUser, UserRole } from '../types';
 
 export interface RegisterPayload {
@@ -33,7 +34,7 @@ const toAuthUser = (data: AuthApiResponse): AuthUser => ({
   userId: data.userId,
   email: data.email,
   fullName: data.fullName,
-  roles: data.roles,
+  roles: normalizeRoles(data.roles),
   accessToken: data.accessToken || data.token || '',
   refreshToken: data.refreshToken
 });

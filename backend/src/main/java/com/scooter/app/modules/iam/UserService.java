@@ -11,6 +11,7 @@ import com.scooter.app.shared.exception.EntityNotFoundException;
 import com.scooter.app.shared.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,7 +38,9 @@ public class UserService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        UserRole role = UserRole.from(request.getRole());
+        UserRole role = request.getRole() == null || request.getRole().isBlank()
+                ? UserRole.CUSTOMER
+                : UserRole.from(request.getRole());
         if (role == UserRole.ADMIN) {
             throw new IllegalArgumentException("ADMIN cannot self-register");
         }
@@ -53,7 +56,12 @@ public class UserService {
                 .role(role)
                 .createdAt(LocalDateTime.now())
                 .build();
-        userRepository.save(user);
+        try {
+            userRepository.saveAndFlush(user);
+        } catch (DataIntegrityViolationException ex) {
+            log.error("Registration failed for email={} due to data integrity violation", request.getEmail(), ex);
+            throw new IllegalArgumentException("Email already registered");
+        }
 
         if (role == UserRole.RIDER) {
             riderRepository.save(RiderProfile.builder()

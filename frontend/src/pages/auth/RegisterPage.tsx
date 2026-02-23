@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { isHttpError } from '../../api/http';
 import { Link, useNavigate } from 'react-router-dom';
+import { ROLES } from '../../constants/roles';
 import { useAuth } from '../../store/AuthContext';
 
 export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ fullName: '', email: '', password: '', role: 'CUSTOMER' as 'CUSTOMER' | 'RIDER' });
+  const [form, setForm] = useState({ fullName: '', email: '', password: '', role: ROLES.CUSTOMER as 'CUSTOMER' | 'RIDER' });
   const [error, setError] = useState('');
 
   const submit = async (e: React.FormEvent) => {
@@ -21,8 +22,9 @@ export default function RegisterPage() {
         return;
       }
 
-      const message = (err.data as { message?: string } | null)?.message;
-      setError(message || 'Registration failed');
+      const errorData = err.response?.data as { message?: string; fieldErrors?: Record<string, string> } | undefined;
+      const fieldValidationMessage = errorData?.fieldErrors ? Object.values(errorData.fieldErrors).join(', ') : undefined;
+      setError(errorData?.message || fieldValidationMessage || 'Registration failed');
     }
   };
 
