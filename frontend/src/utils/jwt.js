@@ -1,3 +1,5 @@
+import { normalizeRole, normalizeRoles } from '../constants/roles';
+
 export function decodeJwt(token) {
   if (!token) return null;
   try {
@@ -36,11 +38,13 @@ export function extractRolesFromToken(token) {
 }
 
 export function tokenHasRole(token, role) {
-  return extractRolesFromToken(token).includes(role);
+  const normalizedTarget = normalizeRole(role);
+  if (!normalizedTarget) return false;
+  return normalizeRoles(extractRolesFromToken(token)).includes(normalizedTarget);
 }
 
 export function extractRoleFromToken(token) {
-  const roles = extractRolesFromToken(token);
+  const roles = normalizeRoles(extractRolesFromToken(token));
   if (roles.length === 0) return null;
-  return roles[0].replace('ROLE_', '');
+  return roles[0];
 }

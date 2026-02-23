@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { isHttpError } from '../../api/http';
 import { Link, useNavigate } from 'react-router-dom';
+import { ROLES } from '../../constants/roles';
 import { useAuth } from '../../store/AuthContext';
 import type { UserRole } from '../../types';
 
 type PortalRole = UserRole;
 
-const PORTAL_OPTIONS: PortalRole[] = ['CUSTOMER', 'RIDER', 'ADMIN'];
+const PORTAL_OPTIONS: PortalRole[] = [ROLES.CUSTOMER, ROLES.RIDER, ROLES.ADMIN];
 
 const roleHome: Record<PortalRole, string> = {
   CUSTOMER: '/customer/dashboard',
@@ -47,7 +48,7 @@ export default function LoginPage() {
       } else if (err.status === 403) {
         setError(getPortalAccessError(portalRole));
       } else {
-        const message = (err.data as { message?: string } | null)?.message;
+        const message = (err.response?.data as { message?: string } | undefined)?.message;
         setError(message || 'Login failed');
       }
     }
