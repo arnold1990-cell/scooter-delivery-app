@@ -5,8 +5,8 @@ SELECT gen_random_uuid(),
        'System Admin',
        'ADMIN',
        NOW()
-WHERE '${admin.email}' <> ''
-  AND '${admin.password-bcrypt}' <> ''
+WHERE '${admin.email}' <> '__DISABLED__'
+  AND '${admin.password-bcrypt}' <> '__DISABLED__'
   AND NOT EXISTS (
       SELECT 1
       FROM users

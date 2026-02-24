@@ -8,6 +8,7 @@ import com.scooter.app.modules.riders.RiderProfile;
 import com.scooter.app.modules.riders.RiderRepository;
 import com.scooter.app.modules.riders.RiderStatus;
 import com.scooter.app.shared.exception.EntityNotFoundException;
+import com.scooter.app.shared.exception.ConflictException;
 import com.scooter.app.shared.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,7 @@ public class UserService {
             throw new IllegalArgumentException("ADMIN cannot self-register");
         }
         userRepository.findByEmail(request.getEmail()).ifPresent(u -> {
-            throw new IllegalArgumentException("Email already registered");
+            throw new ConflictException("Email already registered");
         });
 
         User user = User.builder()
@@ -60,7 +61,7 @@ public class UserService {
             userRepository.saveAndFlush(user);
         } catch (DataIntegrityViolationException ex) {
             log.error("Registration failed for email={} due to data integrity violation", request.getEmail(), ex);
-            throw new IllegalArgumentException("Email already registered");
+            throw new ConflictException("Email already registered");
         }
 
         if (role == UserRole.RIDER) {

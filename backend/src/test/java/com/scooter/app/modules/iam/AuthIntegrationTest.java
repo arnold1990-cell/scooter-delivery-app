@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -59,12 +60,21 @@ class AuthIntegrationTest {
     private UserRepository userRepository;
 
     @Test
+    void contextLoadsWithoutAdminEnvAndNoAdminSeededByMigration() {
+        long admins = userRepository.findAll().stream()
+                .filter(user -> user.getRole() == UserRole.ADMIN)
+                .count();
+
+        assertThat(admins).isZero();
+    }
+
+    @Test
     void registrationAssignsCustomerRoleByDefault() throws Exception {
         String email = "customer-" + UUID.randomUUID() + "@example.com";
 
         MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
+                .content("""
                                 {
                                   "email": "%s",
                                   "password": "secret123",
@@ -112,6 +122,7 @@ class AuthIntegrationTest {
 
         SecretKey key = Keys.hmacShaKeyFor(JWT_SECRET.getBytes(StandardCharsets.UTF_8));
         Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+        assertThat(claims.get("roles", List.class)).contains("ROLE_CUSTOMER");
         assertThat(claims.get("authorities", List.class)).contains("ROLE_CUSTOMER");
     }
 
@@ -142,12 +153,58 @@ class AuthIntegrationTest {
         mockMvc.perform(get("/api/admin/analytics/summary")
                         .param("date", "2024-01-01")
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.requiredRole").value("ROLE_ADMIN"));
     }
 
     @Test
     void customerEndpointWithoutTokenReturnsUnauthorized() throws Exception {
         mockMvc.perform(get("/api/customers/{customerId}/deliveries", UUID.randomUUID()))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void registerDuplicateEmailReturnsConflict() throws Exception {
+        String email = "dup-" + UUID.randomUUID() + "@example.com";
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "%s",
+                                  "password": "secret123",
+                                  "fullName": "First User"
+                                }
+                                """.formatted(email)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "%s",
+                                  "password": "secret123",
+                                  "fullName": "Second User"
+                                }
+                                """.formatted(email)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Email already registered"));
+    }
+
+    @Test
+    void registerValidationErrorsReturnBadRequestWithFieldDetails() throws Exception {
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "not-an-email",
+                                  "password": "123",
+                                  "fullName": ""
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.email").exists())
+                .andExpect(jsonPath("$.fieldErrors.password").exists())
+                .andExpect(jsonPath("$.fieldErrors.fullName").exists());
     }
 }
