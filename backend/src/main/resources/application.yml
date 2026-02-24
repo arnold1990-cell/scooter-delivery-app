@@ -17,8 +17,8 @@ spring:
     enabled: true
     locations: classpath:db/migration
     placeholders:
-      admin.email: ${ADMIN_EMAIL:}
-      admin.password-bcrypt: ${ADMIN_PASSWORD_BCRYPT:$2a$12$7xxy7f8aPR2Eq7vWvJ4P3OF7fAQUm6mLCfWfslWQj8fmgJ8q2HEga}
+      admin.email: ${ADMIN_EMAIL:__DISABLED__}
+      admin.password-bcrypt: ${ADMIN_PASSWORD_BCRYPT:__DISABLED__}
 
 app:
   cors:
